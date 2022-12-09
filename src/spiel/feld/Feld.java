@@ -8,4 +8,9 @@ public class Feld {
         feld = new Quadrat[8][8];
     }
 
+    @Override
+    public String toString(){
+        return "";
+    }
+
 }

@@ -1,9 +1,15 @@
 package spiel.figur;
 
-public class Koenig extends Figur {
+import spiel.feld.Quadrat;
 
+public class Koenig extends Figur {
 
     public Koenig(int farbe) {
         super(farbe);
+    }
+
+    @Override
+    public Quadrat[] getVerfuegbareFelder() {
+        return new Quadrat[0];
     }
 }

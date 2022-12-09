@@ -5,7 +5,7 @@ import spiel.feld.Quadrat;
 public abstract class Figur {
 
     private final int farbe;
-    private Quadrat pos;
+    private Quadrat position;
 
     public Figur(int farbe){
         this.farbe = farbe;
@@ -15,9 +15,11 @@ public abstract class Figur {
         this.position = pos;
     }
 
-    public Quadrat[] getVerfuegbareFelder(){
-        if()
-    };
+    abstract public Quadrat[] getVerfuegbareFelder();
+
+    public boolean istGepinnt(){
+        return false;
+    }
 
     public int getFarbe(){
         return this.farbe;
