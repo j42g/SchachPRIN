@@ -15,7 +15,7 @@ public abstract class Figur {
         this.position = pos;
     }
 
-    abstract public Quadrat[] getVerfuegbareFelder();
+    public abstract Quadrat[] getVerfuegbareFelder();
 
     public boolean istGepinnt(){
         return false;
