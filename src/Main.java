@@ -21,5 +21,6 @@ public class Main {
         System.out.print(wk.toString());
         Koenig bk = new Koenig(K.SCHWARZ);
         System.out.print(bk.toString());
+        System.out.println("12");
     }
 }
