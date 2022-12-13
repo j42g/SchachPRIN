@@ -9,7 +9,7 @@ public class Koenig extends Figur {
     }
 
     public String toString() {
-        if (getFarbe() == 1455266403){
+        if (getFarbe() == -1){
             return "\u2654";
         } else {
             return "\u265A";
