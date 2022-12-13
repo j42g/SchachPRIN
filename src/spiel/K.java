@@ -9,6 +9,7 @@ public class K { // Konstanten
     public static final int WEISS = 1;
     public static final int SCHWARZ = -1;
 
+
     // Figuren
     private static final Koenig koenigW = new Koenig(WEISS);
     private static final Koenig koenigS = new Koenig(SCHWARZ);
