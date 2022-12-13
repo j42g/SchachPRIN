@@ -6,8 +6,8 @@ import spiel.figur.*;
 public class K { // Konstanten
 
     // Farben
-    private static final int WEISS = -1105553129;
-    private static final int SCHWARZ = 1455266403;
+    public static final int WEISS = 1;
+    public static final int SCHWARZ = -1;
 
     // Figuren
     private static final Koenig koenigW = new Koenig(WEISS);
