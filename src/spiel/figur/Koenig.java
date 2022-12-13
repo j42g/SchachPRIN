@@ -8,6 +8,13 @@ public class Koenig extends Figur {
         super(farbe);
     }
 
+    public String toString() {
+        if (getFarbe() == 1455266403){
+            return "\u2654";
+        } else {
+            return "\u265A";
+        }
+    }
     @Override
     public Quadrat[] getVerfuegbareFelder() {
         return new Quadrat[0];
