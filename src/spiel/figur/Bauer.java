@@ -12,7 +12,7 @@ public class Bauer extends Figur {
 
     @Override
     public String toString() {
-        if (getFarbe() == 1){
+        if (getFarbe() == -1){
             return "\u2659";
         } else {
             return "\u265F";
