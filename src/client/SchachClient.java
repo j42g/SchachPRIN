@@ -1,41 +1,49 @@
 package client;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class SchachClient implements Runnable {
 
     private Socket server;
-    private String[] reqTypes = new String[]{"Wollen Sie einem zufälligen Spieler spielen?",
-            "Wollen Sieeinem existierenden Spiel beitreten?",
-            "Wollen Sie ein Spiel erstellen?"};
+
 
 
     @Override
     public void run() {
-        int connTyp = getArt();
+
         Socket client = null;
         try {
-            client = new Socket("192.168.137.1", 7777);
-            PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-            BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
-            out.write(connTyp);
+            // Make connection
+            System.out.println("HEHW");
+            client = new Socket("localhost", 7777);
 
-        } catch (IOException e) {
+            System.out.println("Verbindung hergestellt. \nWenn Sie die Verbindung schließen wollen geben Sie \"EXIT\" ein");
+            PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+            ObjectInputStream in = new ObjectInputStream(client.getInputStream());
+            BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
+            out.write(getArt((String[]) in.readObject()));
+        } catch (Exception e) {
+            System.out.println("Fehler beim Verbinden");
             e.printStackTrace();
         }
 
     }
 
+    private void gameLoop() {
+    }
+
     /**
      * Findet heraus, ob der Spieler sich zu einem anderen Spiel
      */
-    private int getArt(){
+    private int getArt(String[] reqTypes){
+        for(int i = 0; i < reqTypes.length; i++){
+            System.out.println(reqTypes[i]);
+        }
+        System.out.println(reqTypes.length);
         Scanner s = new Scanner(System.in);
         String input;
         int temp;
@@ -51,7 +59,7 @@ public class SchachClient implements Runnable {
                 continue;
             }
             temp = Integer.parseInt(input);
-            if(-1 < temp && temp < reqTypes.length){
+            if(!(-1 < temp && temp < reqTypes.length)){
                 System.out.println("Die Zahl ist keine gültige Option!");
                 continue;
             }

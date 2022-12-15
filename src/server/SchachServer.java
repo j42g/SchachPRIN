@@ -21,9 +21,8 @@ public class SchachServer implements Runnable {
         ServerSocket server = null;
         Socket client;
         try{
-            server = new ServerSocket(6969);
-            System.out.println("STARTED SERVER");
-
+            server = new ServerSocket(7777);
+            System.out.println("Server gestartet!");
             while(true) {
                 try {
                     client = server.accept();
