@@ -33,7 +33,7 @@ public class SchachGameThread implements Runnable {
             ObjectOutputStream raus = new ObjectOutputStream(client1.getOutputStream());
             raus.writeObject(reqTypes);
             int code;
-            while(code = Integer.parseInt(br1.readLine())){
+            while((code = Integer.parseInt(br1.readLine())) == 0){
 
             }
             System.out.println();
