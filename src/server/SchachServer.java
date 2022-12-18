@@ -14,7 +14,7 @@ public class SchachServer implements Runnable {
     private final BenutzerManager bm;
     private final ArrayList<SchachGameThread> threads;
 
-    private SchachServer(){
+    private SchachServer() {
         this.shouldRun = true;
         this.bm = new BenutzerManager(SchachServerVerwaltung.filename);
         this.threads = new ArrayList<SchachGameThread>();
@@ -30,26 +30,31 @@ public class SchachServer implements Runnable {
     @Override
     public void run() {
         Socket client;
-        try{
-            while(shouldRun) {
-                try (ServerSocket server = new ServerSocket(7777)) {
-                    client = server.accept();
-                    this.addThread(client);
-                } catch (Exception e) {
-                    System.out.println("Unbekannter Fehler.");
-                    e.printStackTrace();
-                }
+        try (ServerSocket server = new ServerSocket(7777)) {
+            while (shouldRun) {
+                client = server.accept();
+                this.addThread(client);
             }
-
-        } catch(Exception e){
-            System.out.println("Server konnte nicht erstellt werden.");
+        } catch (Exception e) {
+            System.out.println("Unbekannter Fehler.");
             e.printStackTrace();
+            return;
         }
+        // Soll stoppen:
         bm.abspeichern();
-        // TODO alle Games abspeichern, allen nutzern irgendwas sagen idk
+        for (SchachGameThread sgt : this.threads) {
+            sgt.stoppe();
+        }
+        for (SchachGameThread sgt : this.threads) {
+            try {
+                sgt.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
-    private void addThread(Socket client1){
+    private void addThread(Socket client1) {
         long id;
         Random gen = new Random();
         do {
@@ -60,25 +65,22 @@ public class SchachServer implements Runnable {
         this.threads.add(sgt);
     }
 
-    private boolean isUUIDFree(long id){
-        for(SchachGameThread sgt : this.threads)
-            if(sgt.getUUID() == id){
+    private synchronized void speichereSpiel(String fen){
+        // TODO implementieren
+        // Speichern: FEN, Spieler, welcher Spieler welche Farbe hat
+        // format JSON
+        // Dateiname als static field etc.
+    }
+
+    private boolean isUUIDFree(long id) {
+        for (SchachGameThread sgt : this.threads)
+            if (sgt.getUUID() == id) {
                 return false;
             }
         return true;
     }
 
-    public void stoppe(){
-        for(SchachGameThread sgt : this.threads){
-            sgt.stoppe();
-        }
-        for(SchachGameThread sgt : this.threads){
-            try {
-                sgt.join();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
+    public void stoppe() {
         this.shouldRun = false;
     }
 }
