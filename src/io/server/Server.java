@@ -1,28 +1,31 @@
-package server;
+package io.server;
+
+import io.server.benutzerverwalktung.BenutzerManager;
+import org.json.JSONObject;
 
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Random;
 
-public class SchachServer implements Runnable {
+public class Server implements Runnable {
 
-    private static SchachServer instance;
+    private static Server instance;
 
     private volatile boolean shouldRun;
 
-    private final BenutzerManager bm;
-    private final ArrayList<SchachGameThread> threads;
+    private static final BenutzerManager bm = new BenutzerManager(ServerVerwaltung.filename);;
+    private final ArrayList<ClientHandler> threads;
 
-    private SchachServer() {
+    private Server() {
         this.shouldRun = true;
-        this.bm = new BenutzerManager(SchachServerVerwaltung.filename);
-        this.threads = new ArrayList<SchachGameThread>();
+        this.threads = new ArrayList<ClientHandler>();
     }
 
-    public static SchachServer getSchachServer() {
+    public static Server getSchachServer() {
         if (instance == null) { // nicht thread-sicher
-            instance = new SchachServer();
+            instance = new Server();
         }
         return instance;
     }
@@ -42,10 +45,10 @@ public class SchachServer implements Runnable {
         }
         // Soll stoppen:
         bm.abspeichern();
-        for (SchachGameThread sgt : this.threads) {
+        for (ClientHandler sgt : this.threads) {
             sgt.stoppe();
         }
-        for (SchachGameThread sgt : this.threads) {
+        for (ClientHandler sgt : this.threads) {
             try {
                 sgt.join();
             } catch (InterruptedException e) {
@@ -59,8 +62,8 @@ public class SchachServer implements Runnable {
         Random gen = new Random();
         do {
             id = gen.nextLong();
-        } while (isUUIDFree(id));
-        SchachGameThread sgt = new SchachGameThread(client1, id);
+        } while (!isUUIDFree(id));
+        ClientHandler sgt = new ClientHandler(client1, id);
         sgt.start();
         this.threads.add(sgt);
     }
@@ -73,11 +76,33 @@ public class SchachServer implements Runnable {
     }
 
     private boolean isUUIDFree(long id) {
-        for (SchachGameThread sgt : this.threads)
+        for (ClientHandler sgt : this.threads)
             if (sgt.getUUID() == id) {
                 return false;
             }
         return true;
+    }
+
+    public static synchronized boolean einloggen(JSONObject benutzer){
+        byte[] passwordArr = new byte[32];
+        Iterator<Object> it = benutzer.getJSONArray("password").iterator();
+        int temp;
+        for (int i = 0; it.hasNext(); i++) {
+            temp = (int) it.next();
+            passwordArr[i] = (byte) temp;
+        }
+        return bm.einloggen(benutzer.getString("name"), passwordArr);
+    }
+
+    public static synchronized boolean registieren(JSONObject benutzer) {
+        byte[] passwordArr = new byte[32];
+        Iterator<Object> it = benutzer.getJSONArray("password").iterator();
+        int temp;
+        for (int i = 0; it.hasNext(); i++) {
+            temp = (int) it.next();
+            passwordArr[i] = (byte) temp;
+        }
+        return bm.registieren(benutzer.getString("name"), passwordArr);
     }
 
     public void stoppe() {

@@ -1,4 +1,4 @@
-package server;
+package io.server.benutzerverwalktung;
 
 import org.json.JSONObject;
 

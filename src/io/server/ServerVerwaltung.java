@@ -1,14 +1,14 @@
-package server;
+package io.server;
 
 import java.util.Scanner;
 
-public class SchachServerVerwaltung implements Runnable {
+public class ServerVerwaltung implements Runnable {
 
     public static final String filename = "nutzer.txt";
 
     private boolean aktiv;
 
-    public SchachServerVerwaltung(){
+    public ServerVerwaltung(){
         this.aktiv = false;
     }
 
@@ -51,21 +51,21 @@ public class SchachServerVerwaltung implements Runnable {
 
     private void stoppe() {
         this.aktiv = false;
-        SchachServer server = SchachServer.getSchachServer();
+        Server server = Server.getSchachServer();
         server.stoppe();
         System.out.println("SERVER GESTOPPT");
     }
 
     private void starte() {
-        SchachServer server = SchachServer.getSchachServer();
+        Server server = Server.getSchachServer();
         Thread serverThread = new Thread(server);
         serverThread.start();
         this.aktiv = true;
         System.out.println("SERVER GESTARTET");
     }
 
-    public static void keineLustAllesInMainZuSchreibein(){
-        SchachServerVerwaltung s = new SchachServerVerwaltung();
+    public static void main(String[] args){
+        ServerVerwaltung s = new ServerVerwaltung();
         Thread sThread = new Thread(s);
         sThread.start();
     }
