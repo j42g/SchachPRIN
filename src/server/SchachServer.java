@@ -12,14 +12,12 @@ public class SchachServer implements Runnable {
     private volatile boolean shouldRun;
 
     private final BenutzerManager bm;
-    private final ArrayList<Long> UUIDs;
-    private final ArrayList<Thread> threads;
+    private final ArrayList<SchachGameThread> threads;
 
     private SchachServer(){
         this.shouldRun = true;
         this.bm = new BenutzerManager(SchachServerVerwaltung.filename);
-        this.UUIDs = new ArrayList<Long>();
-        this.threads = new ArrayList<Thread>();
+        this.threads = new ArrayList<SchachGameThread>();
     }
 
     public static SchachServer getSchachServer() {
@@ -56,14 +54,31 @@ public class SchachServer implements Runnable {
         Random gen = new Random();
         do {
             id = gen.nextLong();
-        } while (this.UUIDs.contains(id));
-        Thread a = new Thread(new SchachGameThread(client1, id));
-        a.start();
-        this.threads.add(a);
-        this.UUIDs.add(id);
+        } while (isUUIDFree(id));
+        SchachGameThread sgt = new SchachGameThread(client1, id);
+        sgt.start();
+        this.threads.add(sgt);
+    }
+
+    private boolean isUUIDFree(long id){
+        for(SchachGameThread sgt : this.threads)
+            if(sgt.getUUID() == id){
+                return false;
+            }
+        return true;
     }
 
     public void stoppe(){
+        for(SchachGameThread sgt : this.threads){
+            sgt.stoppe();
+        }
+        for(SchachGameThread sgt : this.threads){
+            try {
+                sgt.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
         this.shouldRun = false;
     }
 }

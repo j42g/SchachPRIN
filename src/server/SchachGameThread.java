@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class SchachGameThread implements Runnable {
+public class SchachGameThread extends Thread {
 
     private static final String[] reqTypes = new String[]{"Wollen Sie einem zufälligen Spieler spielen?",
             "Wollen Sie einem existierenden Spiel beitreten?",
@@ -25,6 +25,10 @@ public class SchachGameThread implements Runnable {
 
     @Override
     public void run() {
+
+    }
+
+    public void codeSpeicher(){
         PrintWriter out1 = null;
         BufferedReader br1 = null;
         try {
@@ -52,8 +56,15 @@ public class SchachGameThread implements Runnable {
         } catch (Exception e){
             e.printStackTrace();
         }
-
     }
 
+
+    public void stoppe() {
+        // TODO
+    }
+
+    public long getUUID() {
+        return this.UUID;
+    }
 
 }

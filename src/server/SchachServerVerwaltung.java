@@ -24,7 +24,7 @@ public class SchachServerVerwaltung implements Runnable {
                     if (this.aktiv) {
                         System.out.println("SERVER IS BEREITS AKTIV");
                     } else {
-                        System.out.println("STARTE SERVER");
+                        System.out.println("STARTE SERVER...");
                         starte();
                     }
                 }
@@ -32,7 +32,7 @@ public class SchachServerVerwaltung implements Runnable {
                     if (!this.aktiv) {
                         System.out.println("SERVER IS BEREITS GESTOPPT");
                     } else {
-                        System.out.println("STOPPE SERVER");
+                        System.out.println("STOPPE SERVER...");
                         stoppe();
                     }
                 }
@@ -53,6 +53,7 @@ public class SchachServerVerwaltung implements Runnable {
         this.aktiv = false;
         SchachServer server = SchachServer.getSchachServer();
         server.stoppe();
+        System.out.println("SERVER GESTOPPT");
     }
 
     private void starte() {
@@ -60,10 +61,8 @@ public class SchachServerVerwaltung implements Runnable {
         Thread serverThread = new Thread(server);
         serverThread.start();
         this.aktiv = true;
-
+        System.out.println("SERVER GESTARTET");
     }
-
-
 
     public static void keineLustAllesInMainZuSchreibein(){
         SchachServerVerwaltung s = new SchachServerVerwaltung();
