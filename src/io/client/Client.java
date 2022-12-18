@@ -8,8 +8,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 public class Client implements Runnable, Serializable {
 
@@ -31,8 +30,9 @@ public class Client implements Runnable, Serializable {
              PrintWriter out = new PrintWriter(server.getOutputStream())) {
             JSONObject msg = null;
             String input = null;
-            int tempState = 0; // um im loginvorgang oder wo anders den state zu unterscheidgen (muss am Ende wieder auf 0 gesetzt werden?)
+            int subState = 0; // um im loginvorgang oder wo anders den state zu unterscheidgen (muss am Ende wieder auf 0 gesetzt werden?)
             int temp = -1;
+            int max = -1;
             String name = null;
             String password = null;
             boolean shouldSkipInput = true;
@@ -51,20 +51,20 @@ public class Client implements Runnable, Serializable {
 
                 switch (state) {
                     case 0 -> { // AUTHO
-                        switch (tempState) {
+                        switch (subState) {
                             case 0 -> { // erste nachricht anzeigen
                                 System.out.println("EINLOGGEN (0) ODER REGISTIEREN (1)");
-                                tempState = 1;
+                                subState = 1;
                             }
                             case 1 -> { // einloggen oder registieren
                                 if (isInteger(input)) {
                                     temp = Integer.parseInt(input);
                                     if (temp == 0) { // einloggen
                                         System.out.println("GEGEN SIE IHREN BENUTZERNAME EIN");
-                                        tempState = 20;
+                                        subState = 20;
                                     } else if (temp == 1) { // registrieren
                                         System.out.println("WÄHLEN SIE IHREN BENUTZERNAME EIN");
-                                        tempState = 30;
+                                        subState = 30;
                                     } else {
                                         System.out.println("EINGABE MUSS 0 ODER 1 SEIN");
                                     }
@@ -75,12 +75,12 @@ public class Client implements Runnable, Serializable {
                             case 20 -> { // einloggen benutzername
                                 name = input;
                                 System.out.println("GEGEN SIE IHR PASSWORD EIN");
-                                tempState = 50; // Daten senden
+                                subState = 50; // Daten senden
                             }
                             case 30 -> { // registrieren
                                 name = input;
                                 System.out.println("WÄHLEN SIE IHR PASSWORD");
-                                tempState = 50;
+                                subState = 50;
 
                             }
                             case 50 -> { // Daten senden
@@ -103,28 +103,55 @@ public class Client implements Runnable, Serializable {
                                             System.out.println("ERFOLGREICH REGISTRIERT");
                                         }
                                         state = 1;
-                                        tempState = 0;
+                                        subState = 0;
                                     } else { // Fehlgeschlagen
                                         if (temp == 0) {
                                             System.out.println("EINLOGGEN FEHLGESCHLAGEN");
                                         } else if (temp == 1) {
                                             System.out.println("REGISTRIERUNG FEHLGESCHLAGEN");
                                         }
-                                        tempState = 0;
+                                        subState = 0;
                                         shouldSkipInput = true;
                                     }
 
-                                } else { // ??
-                                    System.out.println("FEHLER");
-                                    return;
-
+                                } else {
+                                    System.out.println("FEHLER IM PROTOKOLL");
                                 }
                             }
                         }
-
-
                     }
                     case 1 -> { // SPIELMODE AUSWÄHLEN
+                        switch (subState){
+                            case 0 -> {
+                                System.out.print("SPIELMODUS AUSWÄHLEN: ");
+                                while (!in.ready()) {// auf antwort warten (sollte eh schon da sein)
+                                    Thread.sleep(10);
+                                }
+                                msg = new JSONObject(in.readLine());
+                                max = msg.getInt("max"); // in case 1 wirds gebraucht
+                                StringBuilder options = new StringBuilder();
+                                Iterator<Object> it = msg.getJSONArray("options").iterator();
+                                for (int i = 0; it.hasNext(); i++) {
+                                    options.append((String)it.next());
+                                    options.append("(").append(i).append(")");
+                                }
+                                System.out.println(options);
+                                subState = 1;
+                            }
+                            case 1 -> {
+                                if (isInteger(input)) {
+                                    temp = Integer.parseInt(input);
+                                    if (-1 < temp && temp < max) {
+                                        out.println(String.format("{\"type\":\"modeselect\",\"mode\":%d}", temp));
+
+                                    } else {
+                                        System.out.println("KEINE GÜLTIGE OPTION");
+                                    }
+                                } else {
+                                    System.out.println("EINGABE IST KEINE ZAHL");
+                                }
+                            }
+                        }
 
                     }
                     case 2 -> { // AUF GEGNER WARTEN

@@ -1,16 +1,14 @@
 package io.server;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Iterator;
 
 public class ClientHandler extends Thread implements Serializable{
 
     private static final String spielOptionenMSG = """
-            {"type":"text","text":"Wollen Sie einem zufälligen Spieler spielen? (0) Wollen Sie einem existierenden Spiel beitreten? (1) Wollen Sie ein Spiel erstellen? (2)]}
+            {"type":"text","max:3","options":["Wollen Sie einem zufälligen Spieler spielen?", "Wollen Sie einem existierenden Spiel beitreten?", "Wollen Sie ein Spiel erstellen?"]}
             """;
     /** Login/Registrierung
      * {"type":"authresponse","success":true}
@@ -34,32 +32,57 @@ public class ClientHandler extends Thread implements Serializable{
     @Override
     public void run() {
         int state = 0;
+        int subState = 0;
+        boolean shouldWait = true;
         JSONObject request;
         try (BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
              PrintWriter out = new PrintWriter(client.getOutputStream())){
             while (shouldRun) {
+                if(shouldWait){
+                    while(!in.ready()){ // waits till input
+                        Thread.sleep(10);
+                    }
+                } else {
+                    shouldWait = true;
+                }
                 switch (state){
-                    case 0 -> {
+                    case 0 -> { // auth
                         request = new JSONObject(in.readLine());
                         if(request.get("type").equals("login")){
                             if(Server.einloggen(request)){
                                 out.println("{\"type\":\"authresponse\",\"success\":true}");
+                                state = 1;
+                                shouldWait = false;
                             } else {
                                 out.println("{\"type\":\"authresponse\",\"success\":false}");
                             }
                         } else if (request.get("type").equals("register")){
                             if(Server.registieren(request)){
                                 out.println("{\"type\":\"authresponse\",\"success\":true}");
+                                state = 1;
+                                shouldWait = false;
                             } else {
                                 out.println("{\"type\":\"authresponse\",\"success\":false}");
                             }
+                        } else {
+                            System.out.println("FEHLER IM PROTOKOLL");
                         }
                         out.flush();
                     }
+                    case 1 -> { // spielmodus auswechseln
+                        switch (subState){
+                            case 0 -> { // sende spielmodi
+                                out.println(spielOptionenMSG);
+                                subState = 1;
+                            }
+                            case 1 -> {
+                                request = new JSONObject(in.readLine());
+                                request.get("")
+                            }
+                        }
+                    }
                 }
-                if(!in.ready()){ // waits till input
-                    Thread.sleep(10);
-                }
+
                 /*switch (state) {
                     case 0 -> {
 
