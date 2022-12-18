@@ -2,29 +2,39 @@ package server;
 
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Random;
 
 public class SchachServer implements Runnable {
 
-    private final ArrayList<Integer> UUIDs;
+    private static SchachServer instance;
+
+    private volatile boolean shouldRun;
+
+    private final BenutzerManager bm;
+    private final ArrayList<Long> UUIDs;
     private final ArrayList<Thread> threads;
 
-    public SchachServer(){
-        this.UUIDs = new ArrayList<Integer>();
+    private SchachServer(){
+        this.shouldRun = true;
+        this.bm = new BenutzerManager(SchachServerVerwaltung.filename);
+        this.UUIDs = new ArrayList<Long>();
         this.threads = new ArrayList<Thread>();
     }
 
+    public static SchachServer getSchachServer() {
+        if (instance == null) { // nicht thread-sicher
+            instance = new SchachServer();
+        }
+        return instance;
+    }
+
     @Override
-    public void run(){
-        ServerSocket server = null;
+    public void run() {
         Socket client;
         try{
-            server = new ServerSocket(7777);
-            System.out.println("Server gestartet!");
-            while(true) {
-                try {
+            while(shouldRun) {
+                try (ServerSocket server = new ServerSocket(7777)) {
                     client = server.accept();
                     this.addThread(client);
                 } catch (Exception e) {
@@ -37,24 +47,23 @@ public class SchachServer implements Runnable {
             System.out.println("Server konnte nicht erstellt werden.");
             e.printStackTrace();
         }
-
+        bm.abspeichern();
+        // TODO alle Games abspeichern, allen nutzern irgendwas sagen idk
     }
 
-
     private void addThread(Socket client1){
-        int id = 0;
+        long id;
         Random gen = new Random();
-        while(true){
-            id = gen.nextInt();
-            if(!this.UUIDs.contains(id)){
-                break;
-            }
-        }
+        do {
+            id = gen.nextLong();
+        } while (this.UUIDs.contains(id));
         Thread a = new Thread(new SchachGameThread(client1, id));
         a.start();
         this.threads.add(a);
         this.UUIDs.add(id);
     }
 
-
+    public void stoppe(){
+        this.shouldRun = false;
+    }
 }

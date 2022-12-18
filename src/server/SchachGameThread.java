@@ -13,12 +13,12 @@ public class SchachGameThread implements Runnable {
             "Wollen Sie einem existierenden Spiel beitreten?",
             "Wollen Sie ein Spiel erstellen?"};
 
-    private final int UUID;
+    private final long UUID;
     private Socket client1;
     private Socket client2;
 
 
-    public SchachGameThread(Socket client1, int UUID){
+    public SchachGameThread(Socket client1, long UUID){
         this.client1 = client1;
         this.UUID = UUID;
     }
