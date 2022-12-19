@@ -143,7 +143,8 @@ public class Client implements Runnable, Serializable {
                                     temp = Integer.parseInt(input);
                                     if (-1 < temp && temp < max) {
                                         out.println(String.format("{\"type\":\"modeselect\",\"mode\":%d}", temp));
-
+                                        System.out.println("AUSWAHL ERFOLGT");
+                                        // TODO uuid abfragen oder auf server warten
                                     } else {
                                         System.out.println("KEINE GÜLTIGE OPTION");
                                     }
@@ -170,91 +171,6 @@ public class Client implements Runnable, Serializable {
         }
         // Client gestoppt
         System.out.println("CLIENT GESTOPPT");
-    }
-
-    private void login(ObjectInputStream in, OutputStreamWriter out) {
-        boolean loggedIn = false;
-        System.out.println("EINLOGGEN (0) ODER REGISTIEREN (1)");
-        Scanner s = new Scanner(System.in);
-        String input;
-
-        do {
-            input = s.nextLine();
-        } while (isInteger(input) && (Integer.parseInt(input) == 0 || Integer.parseInt(input) == 1));
-        String name;
-        String password;
-        JSONObject response;
-        if (Integer.parseInt(input) == 0) {
-            while (!loggedIn) {
-                System.out.print("Benutzername: ");
-                name = s.nextLine();
-                System.out.print("Password: ");
-                password = s.nextLine();
-                try {
-                    out.write(String.format("{\"type\":\"login\",\"name\":\"%s\",\"password\":\"%s\"}", name, hashPassword(password)));
-                    do {
-                        response = (JSONObject) in.readObject();
-                    } while (response == null);
-                    if (true) {
-
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        } else {
-
-        }
-    }
-
-    public void codeDump() {
-
-        Socket client = null;
-        try {
-            // Make connection
-            System.out.println("HEHW");
-            client = new Socket("localhost", 7777);
-
-            System.out.println("Verbindung hergestellt. \nWenn Sie die Verbindung schließen wollen geben Sie \"EXIT\" ein");
-            PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-            ObjectInputStream in = new ObjectInputStream(client.getInputStream());
-            BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
-            out.write(getArt((String[]) in.readObject()));
-        } catch (Exception e) {
-            System.out.println("Fehler beim Verbinden");
-            e.printStackTrace();
-        }
-    }
-
-    private void gameLoop() {
-    }
-
-    private int getArt(String[] reqTypes) {
-        for (int i = 0; i < reqTypes.length; i++) {
-            System.out.println(reqTypes[i]);
-        }
-        System.out.println(reqTypes.length);
-        Scanner s = new Scanner(System.in);
-        String input;
-        int temp;
-        while (true) {
-            System.out.println("Wählen Sie:");
-            for (int i = 0; i < reqTypes.length; i++) {
-                System.out.println(reqTypes[i] + "(" + i + ")");
-            }
-
-            input = s.next();
-            if (!isInteger(input)) {
-                System.out.println("Die Eingabe war keine ganze Zahl!");
-                continue;
-            }
-            temp = Integer.parseInt(input);
-            if (!(-1 < temp && temp < reqTypes.length)) {
-                System.out.println("Die Zahl ist keine gültige Option!");
-                continue;
-            }
-            return temp;
-        }
     }
 
     private String hashPassword(String password) {

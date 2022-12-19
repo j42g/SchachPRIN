@@ -58,6 +58,15 @@ public class BenutzerManager {
         return true;
     }
 
+    public Benutzer getNutzer(String name){
+        for(Benutzer nutzer : this.benutzer){
+            if(nutzer.getName().equals(name)){
+                return nutzer;
+            }
+        }
+        return null;
+    }
+
     public void abspeichern() {
         JSONArray a = new JSONArray();
         for (Benutzer b : benutzer) {

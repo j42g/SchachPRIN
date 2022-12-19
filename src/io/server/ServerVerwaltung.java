@@ -51,13 +51,13 @@ public class ServerVerwaltung implements Runnable {
 
     private void stoppe() {
         this.aktiv = false;
-        Server server = Server.getSchachServer();
+        Server server = Server.getServer();
         server.stoppe();
         System.out.println("SERVER GESTOPPT");
     }
 
     private void starte() {
-        Server server = Server.getSchachServer();
+        Server server = Server.getServer();
         Thread serverThread = new Thread(server);
         serverThread.start();
         this.aktiv = true;

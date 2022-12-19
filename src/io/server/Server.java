@@ -1,13 +1,12 @@
 package io.server;
 
+import io.server.benutzerverwalktung.Benutzer;
 import io.server.benutzerverwalktung.BenutzerManager;
 import org.json.JSONObject;
 
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Random;
+import java.util.*;
 
 public class Server implements Runnable {
 
@@ -15,15 +14,21 @@ public class Server implements Runnable {
 
     private volatile boolean shouldRun;
 
-    private static final BenutzerManager bm = new BenutzerManager(ServerVerwaltung.filename);;
+    private final BenutzerManager bm = new BenutzerManager(ServerVerwaltung.filename);;
     private final ArrayList<ClientHandler> threads;
+    private final ArrayList<ClientHandler> matchmakingQueue;
+    private final ArrayList<ClientHandler> waitingPrivate;
+    private final ArrayList<Game> games;
 
     private Server() {
         this.shouldRun = true;
         this.threads = new ArrayList<ClientHandler>();
+        this.matchmakingQueue = new ArrayList<ClientHandler>();
+        this.waitingPrivate = new ArrayList<ClientHandler>();
+        this.games = new ArrayList<Game>();
     }
 
-    public static Server getSchachServer() {
+    public static Server getServer() {
         if (instance == null) { // nicht thread-sicher
             instance = new Server();
         }
@@ -83,7 +88,12 @@ public class Server implements Runnable {
         return true;
     }
 
-    public static synchronized boolean einloggen(JSONObject benutzer){
+    private void createGame(ClientHandler a, ClientHandler b){
+        // TODO auswählen wer weiß ist
+        // TODO a und b müssen irgendwie an das game kommen
+    }
+
+    public synchronized boolean einloggen(JSONObject benutzer){
         byte[] passwordArr = new byte[32];
         Iterator<Object> it = benutzer.getJSONArray("password").iterator();
         int temp;
@@ -94,7 +104,7 @@ public class Server implements Runnable {
         return bm.einloggen(benutzer.getString("name"), passwordArr);
     }
 
-    public static synchronized boolean registieren(JSONObject benutzer) {
+    public synchronized boolean registieren(JSONObject benutzer) {
         byte[] passwordArr = new byte[32];
         Iterator<Object> it = benutzer.getJSONArray("password").iterator();
         int temp;
@@ -105,7 +115,34 @@ public class Server implements Runnable {
         return bm.registieren(benutzer.getString("name"), passwordArr);
     }
 
+    public Benutzer getNutzer(String name){
+        return bm.getNutzer(name);
+    }
+
+    public synchronized void lookingForOpponent(ClientHandler client){
+        if(this.matchmakingQueue.isEmpty()){
+
+        }
+        this.matchmakingQueue.add(client);
+    }
+
+    public synchronized boolean joinPrivate(long uuid) {
+        for(ClientHandler client : this.waitingPrivate){
+            if(client.getUUID() == uuid){
+                // TODO create game with them
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public synchronized void waitingPrivate(ClientHandler client) {
+        this.waitingPrivate.add(client);
+    }
+
     public void stoppe() {
         this.shouldRun = false;
     }
+
+
 }
