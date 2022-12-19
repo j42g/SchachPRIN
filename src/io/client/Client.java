@@ -48,7 +48,6 @@ public class Client implements Runnable, Serializable {
                     }
                 }
 
-
                 switch (state) {
                     case 0 -> { // AUTHO
                         switch (subState) {
@@ -122,23 +121,27 @@ public class Client implements Runnable, Serializable {
                     }
                     case 1 -> { // SPIELMODE AUSWÄHLEN
                         switch (subState){
-                            case 0 -> {
+                            case 0 -> { // empfangen + ausgeben
                                 System.out.print("SPIELMODUS AUSWÄHLEN: ");
                                 while (!in.ready()) {// auf antwort warten (sollte eh schon da sein)
                                     Thread.sleep(10);
                                 }
                                 msg = new JSONObject(in.readLine());
-                                max = msg.getInt("max"); // in case 1 wirds gebraucht
-                                StringBuilder options = new StringBuilder();
-                                Iterator<Object> it = msg.getJSONArray("options").iterator();
-                                for (int i = 0; it.hasNext(); i++) {
-                                    options.append((String)it.next());
-                                    options.append("(").append(i).append(")");
+                                if(msg.getString("type").equals("options")){
+                                    max = msg.getInt("max"); // in case 1 wirds gebraucht
+                                    StringBuilder options = new StringBuilder();
+                                    Iterator<Object> it = msg.getJSONArray("options").iterator();
+                                    for (int i = 0; it.hasNext(); i++) {
+                                        options.append((String)it.next());
+                                        options.append("(").append(i).append(")");
+                                    }
+                                    System.out.println(options);
+                                    subState = 1;
+                                } else {
+                                    System.out.println("FEHLER IM PROTKOLL");
                                 }
-                                System.out.println(options);
-                                subState = 1;
                             }
-                            case 1 -> {
+                            case 1 -> { // wählen
                                 if (isInteger(input)) {
                                     temp = Integer.parseInt(input);
                                     if (-1 < temp && temp < max) {
