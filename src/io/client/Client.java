@@ -90,10 +90,7 @@ public class Client implements Runnable, Serializable {
                                     out.println(String.format("{\"type\":\"register\",\"name\":\"%s\",\"password\":%s}", name, hashPassword(password)));
                                 }
                                 out.flush();
-                                while (!in.ready()) {// auf antwort warten
-                                    Thread.sleep(10);
-                                }
-                                msg = new JSONObject(in.readLine());
+                                msg = getServerMsg(in);
                                 if (msg.get("type").equals("authresponse")) {
                                     if (msg.getBoolean("success")) { // Erfolgreich
                                         if (temp == 0) {
@@ -123,10 +120,7 @@ public class Client implements Runnable, Serializable {
                         switch (subState){
                             case 0 -> { // empfangen + ausgeben
                                 System.out.print("SPIELMODUS AUSWÄHLEN: ");
-                                while (!in.ready()) {// auf antwort warten (sollte eh schon da sein)
-                                    Thread.sleep(10);
-                                }
-                                msg = new JSONObject(in.readLine());
+                                msg = getServerMsg(in);
                                 if(msg.getString("type").equals("options")){
                                     max = msg.getInt("max"); // in case 1 wirds gebraucht
                                     StringBuilder options = new StringBuilder();
@@ -147,12 +141,38 @@ public class Client implements Runnable, Serializable {
                                     if (-1 < temp && temp < max) {
                                         out.println(String.format("{\"type\":\"modeselect\",\"mode\":%d}", temp));
                                         System.out.println("AUSWAHL ERFOLGT");
-                                        // TODO uuid abfragen oder auf server warten
+                                        subState = temp * 10 + 10; // handeln der auswahl
+                                        shouldSkipInput = true; // erstmal kein input
                                     } else {
                                         System.out.println("KEINE GÜLTIGE OPTION");
                                     }
                                 } else {
                                     System.out.println("EINGABE IST KEINE ZAHL");
+                                }
+                            }
+                            case 10 -> { // mit zufälligem Gegner spielen
+                                System.out.println("BEITRETEN DER QUEUE");
+                            }
+                            case 20 -> { // Spiel beitreten
+                                System.out.println("UUID DES SPIELS EINGEBEN");
+                            }
+                            case 21 -> {
+                                if (isInteger(input)) {
+                                    long uuid = Long.parseLong(input);
+                                    out.println(String.format("{\"type\":\"joingame\",\"uuid\":%d}", uuid));
+                                } else {
+                                    System.out.println("EINGABE KEINE ZAHL");
+                                    shouldSkipInput = true;
+                                    subState = 20; // bisschen hässlich so, aber naja
+                                }
+                            }
+                            case 30 -> { // Spiel erstellen
+                                System.out.println("LOBBY ERSTELLT");
+                                msg = getServerMsg(in);
+                                if(msg.getString("type").equals("uuid")){
+                                    System.out.println("UUID IHRER LOBBY: " + msg.getLong("uuid"));
+                                } else {
+                                    System.out.println("FEHLER IM PROTOKOLL");
                                 }
                             }
                         }
@@ -174,6 +194,13 @@ public class Client implements Runnable, Serializable {
         }
         // Client gestoppt
         System.out.println("CLIENT GESTOPPT");
+    }
+
+    private JSONObject getServerMsg(BufferedReader in) throws IOException, InterruptedException {
+        while (!in.ready()) {// auf antwort warten (sollte eh schon da sein)
+            Thread.sleep(10);
+        }
+        return new JSONObject(in.readLine());
     }
 
     private String hashPassword(String password) {
