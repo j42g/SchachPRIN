@@ -8,9 +8,16 @@ public class Game {
     private ClientHandler hasTurn;
 
 
-    public Game(ClientHandler white, ClientHandler black){
-        this.white = white;
-        this.black = black;
+    public Game(ClientHandler a, ClientHandler b){ // a sollte der sein, der vorher gewartet hat, kann aber sein, dass das egal ist
+        if(Math.random() < 0.5){ // wer ist was
+            this.white = a;
+            this.black = b;
+        } else {
+            this.white = b;
+            this.black = a;
+        }
+        // threads informieren
+
     }
 
     public Game(String json){

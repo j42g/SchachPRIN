@@ -16,14 +16,14 @@ public class Server implements Runnable {
 
     private final BenutzerManager bm = new BenutzerManager(ServerVerwaltung.filename);;
     private final ArrayList<ClientHandler> threads;
-    private final ArrayList<ClientHandler> matchmakingQueue;
+    private ClientHandler waitingClient; // random game queue
     private final ArrayList<ClientHandler> waitingPrivate;
     private final ArrayList<Game> games;
 
     private Server() {
         this.shouldRun = true;
         this.threads = new ArrayList<ClientHandler>();
-        this.matchmakingQueue = new ArrayList<ClientHandler>();
+        this.waitingClient = null;
         this.waitingPrivate = new ArrayList<ClientHandler>();
         this.games = new ArrayList<Game>();
     }
@@ -119,11 +119,14 @@ public class Server implements Runnable {
         return bm.getNutzer(name);
     }
 
-    public synchronized void lookingForOpponent(ClientHandler client){
-        if(this.matchmakingQueue.isEmpty()){
-
+    public synchronized boolean lookingForOpponent(ClientHandler client){
+        if(waitingClient == null){
+            waitingClient = client;
+            return false;
+        } else {
+            games.add(new Game(waitingClient, client));
+            return true;
         }
-        this.matchmakingQueue.add(client);
     }
 
     public synchronized boolean joinPrivate(long uuid) {

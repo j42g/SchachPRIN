@@ -25,6 +25,7 @@ public class ClientHandler extends Thread implements Serializable{
     private final long UUID;
     private final Socket client;
     private Benutzer benutzer;
+    private volatile boolean gegnerGefunden;
 
 
     public ClientHandler(Socket client, long UUID) {
@@ -33,6 +34,7 @@ public class ClientHandler extends Thread implements Serializable{
         this.state = 0;
         this.shouldRun = true;
         this.server = Server.getServer();
+        this.gegnerGefunden = false;
 
     }
 
@@ -90,13 +92,20 @@ public class ClientHandler extends Thread implements Serializable{
                             }
                             case 1 -> { // verarbeite auswahl
                                 if(request.get("type").equals("modeselect")){
-                                    switch (request.getInt("mode")){
+                                    switch (request.getInt("mode") * 10){
                                         case 0 -> { // random gegner
                                             // TODO hier funktioniert noch nichts
-                                            server.lookingForOpponent(this); // man kommt hier erst raus wenn einer gefunden wurde
+                                            if(server.lookingForOpponent(this)){
+                                                out.println("{\"type\":\"queueNotification\",\"ready\":true}");
+                                                this.gegnerGefunden = true;
+                                            } else {
+                                                out.println("{\"type\":\"queueNotification\",\"ready\":false}");
+                                                waiting(in);
+                                            }
+                                            // man kommt hier erst raus wenn einer gefunden wurde
                                             // TODO client ins spiel packen
                                         }
-                                        case 1 -> { // freund beitreten
+                                        case 10 -> { // freund beitreten
                                             if(server.joinPrivate(request.getLong("uuid"))){
                                                 // TODO client.write game gefunden fang an
                                             } else {
@@ -104,7 +113,7 @@ public class ClientHandler extends Thread implements Serializable{
                                             }
 
                                         }
-                                        case 2 -> { // private lobby erstellen
+                                        case 20 -> { // private lobby erstellen
                                             out.println(String.format("{\"type\":\"uuid\",\"uuid\":%d}", this.UUID));
                                             server.waitingPrivate(this);
                                         }
@@ -128,12 +137,30 @@ public class ClientHandler extends Thread implements Serializable{
         }
     }
 
+    public void waiting(BufferedReader in){
+        try {
+            while (!this.gegnerGefunden) {
+                Thread.sleep(10);
+                if(in.ready()){
+
+                }
+            }
+        } catch (Exception ex){
+            ex.printStackTrace();
+            System.out.println("FEHLER IM SERVER");
+        }
+    }
+
     public void giveGame(Game game){
         this.game = game;
     }
 
     public long getUUID() {
         return this.UUID;
+    }
+
+    public void gegnerGefunden(){
+        this.gegnerGefunden = true;
     }
 
     public void stoppe() {

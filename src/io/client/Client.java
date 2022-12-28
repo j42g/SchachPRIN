@@ -3,7 +3,6 @@ package io.client;
 import org.json.JSONObject;
 
 import java.io.*;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -139,10 +138,9 @@ public class Client implements Runnable, Serializable {
                                 if (isInteger(input)) {
                                     temp = Integer.parseInt(input);
                                     if (-1 < temp && temp < max) {
-                                        out.println(String.format("{\"type\":\"modeselect\",\"mode\":%d}", temp));
                                         System.out.println("AUSWAHL ERFOLGT");
                                         subState = temp * 10 + 10; // handeln der auswahl
-                                        shouldSkipInput = true; // erstmal kein input
+                                        shouldSkipInput = true; // erstmal kein input, erstmal nichts senden
                                     } else {
                                         System.out.println("KEINE GÜLTIGE OPTION");
                                     }
@@ -152,34 +150,81 @@ public class Client implements Runnable, Serializable {
                             }
                             case 10 -> { // mit zufälligem Gegner spielen
                                 System.out.println("BEITRETEN DER QUEUE");
+                                out.println(String.format("{\"type\":\"modeselect\",\"mode\":%d}", temp));
                             }
                             case 20 -> { // Spiel beitreten
                                 System.out.println("UUID DES SPIELS EINGEBEN");
+                                subState = 21;
                             }
                             case 21 -> {
                                 if (isInteger(input)) {
                                     long uuid = Long.parseLong(input);
-                                    out.println(String.format("{\"type\":\"joingame\",\"uuid\":%d}", uuid));
+                                    out.println(String.format("{\"type\":\"modeselect\",\"mode\":%d,\"uuid\":%d}", temp, uuid));
+                                    subState = 22;
                                 } else {
                                     System.out.println("EINGABE KEINE ZAHL");
                                     shouldSkipInput = true;
                                     subState = 20; // bisschen hässlich so, aber naja
                                 }
                             }
+                            case 22 -> {
+                                msg = getServerMsg(in);
+                                if(msg.getString("type").equals("queueNotification")){
+                                    if(msg.getBoolean("ready")){
+                                        state = 3;
+                                        subState = 0;
+                                    } else {
+                                        state = 2;
+                                        subState = 0;
+                                    }
+                                } else {
+                                    System.out.println("FEHLER IM PROTOKOLL");
+                                }
+                                // TODO queue handeln: warten oder game starten
+                            }
                             case 30 -> { // Spiel erstellen
                                 System.out.println("LOBBY ERSTELLT");
                                 msg = getServerMsg(in);
                                 if(msg.getString("type").equals("uuid")){
                                     System.out.println("UUID IHRER LOBBY: " + msg.getLong("uuid"));
+                                    System.out.println("GEBEN SIE DIESE UUID IHREN MITSPIELER. ER KANN DANN DIESER LOBBY BEITRETEN");
+                                    state = 2;
+                                    subState = 0;
                                 } else {
                                     System.out.println("FEHLER IM PROTOKOLL");
                                 }
                             }
                         }
-
                     }
                     case 2 -> { // AUF GEGNER WARTEN
-
+                        switch (subState){
+                            case 0 -> { // setup waiting without input
+                                Runnable waiter = new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            while(!in.ready()){
+                                                Thread.sleep(10);
+                                            }
+                                            System.out.println("SPIELER GEFUNDEN");
+                                        } catch (Exception ex){
+                                            ex.printStackTrace();
+                                            System.out.println("FEHLER IM PROGRAMM");
+                                        }
+                                    }
+                                };
+                                Thread waiterThread = new Thread(waiter);
+                                waiterThread.start();
+                                subState = 1;
+                            }
+                            case 1 -> { // hier sind wir, wenn input gekommen ist und das nicht EXIT war
+                                if(!in.ready()){
+                                    System.out.println("KEIN GEGENSPIELER GEFUNDEN. WARTEN SIE WEITER ODER VERLASSEN SIE DAS PROGRAM");
+                                } else {
+                                    // TODO keine Ahnung den Type ins Spiel tuen oder so?
+                                }
+                            }
+                        }
                     }
                     case 3 -> { // IM SPIEL
 
@@ -197,7 +242,7 @@ public class Client implements Runnable, Serializable {
     }
 
     private JSONObject getServerMsg(BufferedReader in) throws IOException, InterruptedException {
-        while (!in.ready()) {// auf antwort warten (sollte eh schon da sein)
+        while (!in.ready()) {
             Thread.sleep(10);
         }
         return new JSONObject(in.readLine());
