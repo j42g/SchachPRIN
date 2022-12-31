@@ -17,7 +17,10 @@ public class Game {
             this.black = a;
         }
         // threads informieren
-
+        a.giveGame(this);
+        b.giveGame(this);
+        // TODO feld generieren
+        // TODO weiß nach move fragen aka gameloop starten
     }
 
     public Game(String json){

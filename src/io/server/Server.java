@@ -129,10 +129,12 @@ public class Server implements Runnable {
         }
     }
 
-    public synchronized boolean joinPrivate(long uuid) {
-        for(ClientHandler client : this.waitingPrivate){
-            if(client.getUUID() == uuid){
+    public synchronized boolean joinPrivate(ClientHandler client, long uuid) {
+        for(int i = 0; i < waitingPrivate.size(); i++){
+            if(waitingPrivate.get(i).getUUID() == uuid){
                 // TODO create game with them
+                games.add(new Game(waitingPrivate.get(i), client));
+                waitingPrivate.remove(i);
                 return true;
             }
         }

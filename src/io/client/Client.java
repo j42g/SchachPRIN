@@ -286,9 +286,7 @@ public class Client implements Runnable, Serializable {
     }
 
     public static void main(String[] args) {
-        Client c = new Client();
-        Thread cThread = new Thread(c);
-        cThread.start();
+
     }
 
 
