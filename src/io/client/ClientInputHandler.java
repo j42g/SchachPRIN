@@ -11,6 +11,7 @@ import java.util.Scanner;
 
 public class ClientInputHandler implements Runnable {
 
+    private final String[] alleSpielmodi = new String[]{"RANDOM GEGNER", "PRIVATES SPIEL ERSTELLEN", "PRIVATEM SPIEL BEITRETEN"};
     private final String[] alleBefehle = new String[]{"VERBINDEN", "EXIT", "TRENNEN", "ANMELDEN", "REGISTRIEREN", "EXIT", "SPIELMODI", "AUFGEBEN", "VERLASSEN"};
 
     private Verbinder v;
@@ -21,7 +22,7 @@ public class ClientInputHandler implements Runnable {
     private boolean amZug;
     private boolean spielVorbei;
 
-    public ClientInputHandler(){
+    public ClientInputHandler() {
         this.v = null;
         this.verbunden = false;
         this.eingeloggt = false;
@@ -31,56 +32,57 @@ public class ClientInputHandler implements Runnable {
     }
 
     @Override
-    public void run(){
+    public void run() {
         Scanner s = new Scanner(System.in);
         String input;
         System.out.print("STARTE CLIENT. BEFEHLE: " + alleBefehle[0]);
         ArrayList<String> verfuegbareBefehle = new ArrayList<String>();
-        for(int i = 1; i < alleBefehle.length; i++){
+        for (int i = 1; i < alleBefehle.length; i++) {
             System.out.print(", " + alleBefehle[i]);
         }
-        while(true){
+        System.out.println("VERFÜGBARE BEFEHLE: VERBINDEN, EXIT");
+        while (true) {
             input = s.nextLine().toUpperCase();
-            if(!Arrays.asList(this.alleBefehle).contains(input)){
+            if (!Arrays.asList(this.alleBefehle).contains(input)) {
                 System.out.println("UNBEKANNTER BEFEHL");
                 continue;
             }
 
             // LOGIK
-            if(!verbunden){
-                if(input.equals("VERBINDEN")){
+            if (!verbunden) {
+                if (input.equals("VERBINDEN")) {
                     verbinde();
-                } else if(input.equals("EXIT")){
+                } else if (input.equals("EXIT")) {
                     return;
                 }
             } else { // VERBUNDEN
-                if(!eingeloggt){
-                    if(input.equals("TRENNEN")){
+                if (!eingeloggt) {
+                    if (input.equals("TRENNEN")) {
                         trenne();
-                    } else if(input.equals("ANMELDEN")){
+                    } else if (input.equals("ANMELDEN")) {
                         anmelden();
-                    } else if(input.equals("REGISTRIEREN")){
+                    } else if (input.equals("REGISTRIEREN")) {
                         registrieren();
                     }
                 } else { // EINGELOGGT
                     if (!imSpiel) {
-                        if(input.equals("ABMELDEN")){
+                        if (input.equals("ABMELDEN")) {
                             abmelden();
-                        } else if(input.equals("SPIELMODI")){
-                            // TODO
+                        } else if (input.equals("SPIELMODI")) {
+                            spielmodiAuswahl();
                         }
                     } else { // IM SPIEL
-                        if(spielVorbei){
-                            if(input.equals("SPIELMODI")){
-                                // TODO
+                        if (spielVorbei) {
+                            if (input.equals("SPIELMODI")) {
+                                spielmodiAuswahl();
                             }
                         } else { // nicht vorbei
-                            if(input.equals("AUFGEBEN")){
+                            if (input.equals("AUFGEBEN")) {
                                 // TODO
-                            } else if(input.equals("VERLASSEN")){
+                            } else if (input.equals("VERLASSEN")) {
                                 // TODO
                             }
-                            if(amZug){
+                            if (amZug) {
                                 // TODO
                             } else { // nicht am Zug
                                 System.out.println("SIE SIND NICHT AM ZUG");
@@ -92,11 +94,11 @@ public class ClientInputHandler implements Runnable {
 
             // --------------- Welche Befehle kann man verwenden ----------------
             verfuegbareBefehle.clear();
-            if(!verbunden){
+            if (!verbunden) {
                 verfuegbareBefehle.add("VERBINDEN");
                 verfuegbareBefehle.add("EXIT");
             } else { // VERBUNDEN
-                if(!eingeloggt){
+                if (!eingeloggt) {
                     verfuegbareBefehle.add("ANMELDEN");
                     verfuegbareBefehle.add("REGISTRIEREN");
                     verfuegbareBefehle.add("TRENNEN");
@@ -105,12 +107,12 @@ public class ClientInputHandler implements Runnable {
                         verfuegbareBefehle.add("ABMELDEN");
                         verfuegbareBefehle.add("SPIELMODI");
                     } else { // IM SPIEL
-                        if(spielVorbei){
+                        if (spielVorbei) {
                             verfuegbareBefehle.add("SPIELMODI");
                         } else { // nicht vorbei
                             verfuegbareBefehle.add("VERLASSEN");
                             verfuegbareBefehle.add("AUFGEBEN");
-                            if(amZug){
+                            if (amZug) {
                                 verfuegbareBefehle.add("[ZUG]");
                             }
                         }
@@ -118,10 +120,15 @@ public class ClientInputHandler implements Runnable {
                 }
             }
             System.out.print("VERFÜGBARE BEFEHLE: " + verfuegbareBefehle.get(0));
-            for(int i = 1; i < alleBefehle.length; i++){
+            for (int i = 1; i < alleBefehle.length; i++) {
                 System.out.print(", " + verfuegbareBefehle.get(i));
             }
         }
+    }
+
+    private void verbinde() {
+        this.verbunden = true;
+        this.v = Verbinder.getInstance();
     }
 
     private void trenne() {
@@ -137,7 +144,7 @@ public class ClientInputHandler implements Runnable {
         String password;
         JSONObject antwort;
         System.out.println("VORGANG ABBRECHEN: \"ABBRECHEN\"");
-        while(true){
+        while (true) {
             do {
                 System.out.println("GEGEN SIE IHREN BENUTZERNAME EIN");
                 benutzername = s.nextLine();
@@ -157,10 +164,14 @@ public class ClientInputHandler implements Runnable {
             String hashedpw = hashPassword(password);
             v.sendeJSON(new JSONObject(String.format("{\"type\":\"login\",\"name\":\"%s\",\"password\":%s}", benutzername, hashedpw)));
             antwort = v.warteAufJSON();
-            if(antwort.getString("type").equals("authresponse")){
-                if(antwort.getBoolean("success")){
+            if (antwort.getString("type").equals("authresponse")) {
+                if (antwort.getBoolean("success")) {
                     System.out.println("ERFOLGREICH ANGEMELDET");
                     this.eingeloggt = true;
+                    if (antwort.getLong("opengame") != -1) {
+                        System.out.println("SIE HABEN NOCH EIN OFFENES SPIEL. FALLS SIE EIN ANDERES SPIEL SPIELEN WOLLEN, MÜSSEN SIE DIESES ZUNÄCHST FERTIG SPIELEN ODER AUFGEBEN");
+                        this.imSpiel = true;
+                    }
                     return;
                 } else {
                     System.out.println("FEHLER BEIM ANMELDEN. FEHLER: " + antwort.getString("error"));
@@ -171,13 +182,13 @@ public class ClientInputHandler implements Runnable {
         }
     }
 
-    public void registrieren(){
+    private void registrieren() {
         Scanner s = new Scanner(System.in);
         String benutzername;
         String password;
         JSONObject antwort;
         System.out.println("VORGANG ABBRECHEN MIT: \"ABBRECHEN\"");
-        while(true){
+        while (true) {
             do {
                 System.out.println("WÄHLEN SIE EINEN BENUTZERNAME");
                 benutzername = s.nextLine();
@@ -197,8 +208,8 @@ public class ClientInputHandler implements Runnable {
             String hashedpw = hashPassword(password);
             v.sendeJSON(new JSONObject(String.format("{\"type\":\"register\",\"name\":\"%s\",\"password\":%s}", benutzername, hashedpw)));
             antwort = v.warteAufJSON();
-            if(antwort.getString("type").equals("authresponse")){
-                if(antwort.getBoolean("success")){
+            if (antwort.getString("type").equals("authresponse")) {
+                if (antwort.getBoolean("success")) {
                     System.out.println("ERFOLGREICH REGISTRIERT");
                     this.eingeloggt = true;
                     return;
@@ -211,11 +222,11 @@ public class ClientInputHandler implements Runnable {
         }
     }
 
-    public void abmelden(){
+    private void abmelden() {
         System.out.println("ABMELDEN..");
         v.sendeJSON(new JSONObject("{\"type\":\"logout\"}"));
         JSONObject response = v.warteAufJSON();
-        if(response.getString("type").equals("logoutresponse")){
+        if (response.getString("type").equals("logoutresponse")) {
             System.out.println("ABMELDUNG ERFOLGREICH");
             this.eingeloggt = false;
         } else {
@@ -223,9 +234,77 @@ public class ClientInputHandler implements Runnable {
         }
     }
 
-    private void verbinde() {
-        this.verbunden = true;
-        this.v = Verbinder.getInstance();
+    private void spielmodiAuswahl() {
+        Scanner s = new Scanner(System.in);
+        String input;
+        int modi;
+        System.out.println("VORGANG ABBRECHEN: \"ABBRECHEN\"");
+        while (true) {
+            System.out.println("WÄHLEN SIE EINEN SPIELMODE:");
+            for (int i = 0; i < alleSpielmodi.length; i++) {
+                System.out.println(i + ":\t" + alleSpielmodi[i]);
+            }
+            input = s.nextLine();
+            if (input.equalsIgnoreCase("ABBRECHEN")) {
+                System.out.println("VORGANG ABGEBROCHEN");
+                return;
+            }
+            if (isInteger(input)) {
+                modi = Integer.parseInt(input);
+                if (-1 < modi && modi < alleSpielmodi.length) {
+                    break;
+                } else {
+                    System.out.println("EINGABE KEIN GÜLTIGER SPIELMODE");
+                }
+            } else {
+                System.out.println("EINGABE KEINE ZAHL");
+            }
+        }
+        // mode-abhängige Daten
+        if(modi == 2){ // uuid, des spiels, dem man beitreten will
+            long uuid;
+            while(true){
+                input = s.nextLine();
+                if (input.equalsIgnoreCase("ABBRECHEN")) {
+                    System.out.println("VORGANG ABGEBROCHEN");
+                    return;
+                }
+                if (isInteger(input)) {
+                    uuid = Long.parseLong(input);
+                    break;
+                } else {
+                    System.out.println("EINGABE KEINE ZAHL");
+                }
+            }
+            v.sendeJSON(new JSONObject(String.format("{\"type\":\"modeselect\",\"mode\":%d,\"uuid\":%d}", modi, uuid)));
+        } else { // andere Modi
+            v.sendeJSON(new JSONObject(String.format("{\"type\":\"modeselect\",\"mode\":%d}", modi)));
+        }
+
+        JSONObject antwort = new JSONObject(v.warteAufJSON());
+        if(antwort.getString("type").equals("modeconfirm")){
+            if(antwort.getInt("mode") == modi){
+                System.out.println("AUSWAHL ERFOLGT");
+            } else {
+                System.out.println("FEHLER BEI DER BESTÄTIGUNG DER AUSWAHL");
+            }
+        } else {
+            System.out.println("FEHLER BEIM PROTOKOLL");
+        }
+
+        if(modi == 0){
+            if(antwort.getBoolean("ready")){
+                System.out.println("GEGNER GEFUNDEN. SPIEL STARTET");
+            } else {
+                System.out.println("QUEUE BEIGETRETEN");
+                // TODO warten machen
+            }
+        } else if (modi == 1) {
+            System.out.println("LOBBY ERSTELLT. UUID=" + antwort.getLong("uuid") + ". GEBEN SIE DIESE UUID EINEM FREUND, DER IHNEN DANN BEITRETEN KANN");
+        } else if (modi == 2) {
+            System.out.println("LOBBY BEIGETRETEN");
+        }
+        System.out.println("SPIEL STARTET");
     }
 
     private String hashPassword(String password) {
@@ -239,7 +318,7 @@ public class ClientInputHandler implements Runnable {
         StringBuilder jsonArr = new StringBuilder();
         jsonArr.append("[");
         jsonArr.append(hashedPw[0]);
-        for(int i = 1; i < hashedPw.length; i++){
+        for (int i = 1; i < hashedPw.length; i++) {
             jsonArr.append(",");
             jsonArr.append(hashedPw[i]);
         }
@@ -247,7 +326,25 @@ public class ClientInputHandler implements Runnable {
         return jsonArr.toString();
     }
 
-    public static void main(String[] args){
+    private static boolean isInteger(String str) {
+        if (str == null) {
+            return false;
+        }
+        int length = str.length();
+        if (length == 0) {
+            return false;
+        }
+        int i = 0;
+        for (; i < length; i++) {
+            char c = str.charAt(i);
+            if (c < '0' || c > '9') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static void main(String[] args) {
         ClientInputHandler client = new ClientInputHandler();
         Thread clientThread = new Thread(client);
         clientThread.start();

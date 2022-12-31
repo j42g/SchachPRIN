@@ -1,7 +1,6 @@
 package io.server;
 
 import io.server.benutzerverwalktung.Benutzer;
-import io.server.benutzerverwalktung.BenutzerManager;
 import org.json.JSONObject;
 
 import java.io.*;

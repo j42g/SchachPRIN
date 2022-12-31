@@ -67,7 +67,7 @@ public class Server implements Runnable {
         Random gen = new Random();
         do {
             id = gen.nextLong();
-        } while (!isUUIDFree(id));
+        } while (!isUUIDFree(id) && id > -1);
         ClientHandler sgt = new ClientHandler(client1, id);
         sgt.start();
         this.threads.add(sgt);
