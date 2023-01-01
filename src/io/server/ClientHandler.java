@@ -8,34 +8,63 @@ import java.net.Socket;
 
 public class ClientHandler extends Thread {
 
-    private static final String spielOptionenMSG = """
-            {"type":"text","max:3","options":["Wollen Sie mit einem zufälligen Spieler spielen?", "Wollen Sie einem existierenden Spiel beitreten?", "Wollen Sie ein Spiel erstellen?"]}
-            """;
+
     private volatile boolean shouldRun;
 
 
-    private int state;
+    private boolean eingeloggt;
+    private boolean imSpiel;
+    private boolean amZug;
+    private boolean spielVorbei;
     private final Server server;
-    private Game game;
+    private SchachSpiel schachSpiel;
     private final long UUID;
     private final Socket client;
     private Benutzer benutzer;
     private volatile boolean gegnerGefunden;
-    private volatile boolean dran;
 
 
     public ClientHandler(Socket client, long UUID) {
         this.client = client;
         this.UUID = UUID;
-        this.state = 0;
         this.shouldRun = true;
         this.server = Server.getServer();
         this.gegnerGefunden = false;
+        this.eingeloggt = false;
+        this.imSpiel = false;
+        this.amZug = false;
+        this.spielVorbei = false;
 
     }
 
     @Override
     public void run() {
+        boolean inputErwartend = true;
+        JSONObject request = null;
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+             PrintWriter out = new PrintWriter(client.getOutputStream())) {
+            if(inputErwartend){
+                while(!in.ready()){
+                    Thread.sleep(10);
+                }
+                request = new JSONObject(in.readLine());
+            } else {
+                inputErwartend = true;
+            }
+            while (shouldRun) {
+                if(!eingeloggt){
+
+                }
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.out.println("FEHLER BEI DER VERBINDUNG");
+        }
+    }
+
+
+    public void run2() {
         int state = 0;
         int subState = 0;
         boolean shouldWait = true;
@@ -173,8 +202,8 @@ public class ClientHandler extends Thread {
         return new JSONObject("");
     }
 
-    public void giveGame(Game game){
-        this.game = game;
+    public void giveGame(SchachSpiel schachSpiel){
+        this.schachSpiel = schachSpiel;
         this.gegnerGefunden = true;
     }
 

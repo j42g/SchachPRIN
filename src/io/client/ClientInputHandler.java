@@ -78,9 +78,9 @@ public class ClientInputHandler implements Runnable {
                             }
                         } else { // nicht vorbei
                             if (input.equals("AUFGEBEN")) {
-                                // TODO
+                                v.sendeJSON(new JSONObject("{\"type\":\"forfeit\"}"));
                             } else if (input.equals("VERLASSEN")) {
-                                // TODO
+                                v.sendeJSON(new JSONObject("{\"type\":\"leave\"}"));
                             }
                             if (amZug) {
                                 // TODO

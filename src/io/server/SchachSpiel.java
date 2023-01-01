@@ -1,6 +1,6 @@
 package io.server;
 
-public class Game {
+public class SchachSpiel {
 
     private ClientHandler white;
     private ClientHandler black;
@@ -8,7 +8,7 @@ public class Game {
     private ClientHandler hasTurn;
 
 
-    public Game(ClientHandler a, ClientHandler b){ // a sollte der sein, der vorher gewartet hat, kann aber sein, dass das egal ist
+    public SchachSpiel(ClientHandler a, ClientHandler b){ // a sollte der sein, der vorher gewartet hat, kann aber sein, dass das egal ist
         if(Math.random() < 0.5){ // wer ist was
             this.white = a;
             this.black = b;
@@ -23,7 +23,7 @@ public class Game {
         // TODO weiß nach move fragen aka gameloop starten
     }
 
-    public Game(String json){
+    public SchachSpiel(String json){
 
     }
 

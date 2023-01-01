@@ -18,14 +18,14 @@ public class Server implements Runnable {
     private final ArrayList<ClientHandler> threads;
     private ClientHandler waitingClient; // random game queue
     private final ArrayList<ClientHandler> waitingPrivate;
-    private final ArrayList<Game> games;
+    private final ArrayList<SchachSpiel> schachSpiels;
 
     private Server() {
         this.shouldRun = true;
         this.threads = new ArrayList<ClientHandler>();
         this.waitingClient = null;
         this.waitingPrivate = new ArrayList<ClientHandler>();
-        this.games = new ArrayList<Game>();
+        this.schachSpiels = new ArrayList<SchachSpiel>();
     }
 
     public static Server getServer() {
@@ -124,7 +124,7 @@ public class Server implements Runnable {
             waitingClient = client;
             return false;
         } else {
-            games.add(new Game(waitingClient, client));
+            schachSpiels.add(new SchachSpiel(waitingClient, client));
             return true;
         }
     }
@@ -133,7 +133,7 @@ public class Server implements Runnable {
         for(int i = 0; i < waitingPrivate.size(); i++){
             if(waitingPrivate.get(i).getUUID() == uuid){
                 // TODO create game with them
-                games.add(new Game(waitingPrivate.get(i), client));
+                schachSpiels.add(new SchachSpiel(waitingPrivate.get(i), client));
                 waitingPrivate.remove(i);
                 return true;
             }
