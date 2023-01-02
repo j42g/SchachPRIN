@@ -3,7 +3,9 @@ package io.server;
 import io.server.benutzerverwalktung.Benutzer;
 import org.json.JSONObject;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 public class ClientHandler extends Thread {
@@ -41,19 +43,57 @@ public class ClientHandler extends Thread {
     public void run() {
         boolean inputErwartend = true;
         JSONObject request = null;
+        String requestType = null;
         try (BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-             PrintWriter out = new PrintWriter(client.getOutputStream())) {
-            if(inputErwartend){
-                while(!in.ready()){
-                    Thread.sleep(10);
-                }
-                request = new JSONObject(in.readLine());
-            } else {
-                inputErwartend = true;
-            }
+             PrintWriter out = new PrintWriter(client.getOutputStream(), true)) {
             while (shouldRun) {
-                if(!eingeloggt){
+                if (inputErwartend) {
+                    while (!in.ready() && shouldRun) {
+                        Thread.sleep(10);
+                    }
+                    request = new JSONObject(in.readLine());
+                    requestType = request.getString("type");
+                    if (requestType.equals("terminate")) {
+                        terminate();
+                    }
 
+                } else {
+                    inputErwartend = true;
+                }
+                if (!eingeloggt) {
+                    if (requestType.equals("login")) {
+                        if (!server.existiertNutzer(request)) { // benutzer existiert nicht
+                            out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: BENUTZER EXISTIERT NICHT\"}");
+                        } else {
+                            this.benutzer = server.einloggen(request);
+                            if (this.benutzer == null) { // passwort falsch
+                                out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: PASSWORT FALSCH\"}");
+                            } else { // alles korrekt
+                                out.println(String.format("{\"type\":\"authresponse\",\"success\":true,\"opengame\":%d}", benutzer.getUuidOffenesSpiel()));
+                                eingeloggt = true;
+                            }
+                        }
+                    } else if (requestType.equals("register")) {
+                        if (server.existiertNutzer(request)) { // benutzer existiert nicht schon
+                            out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: BENUTZER EXISTIERT SCHON\"}");
+                        } else {
+                            this.benutzer = server.registieren(request);
+                            if (this.benutzer == null) { // gute Frage wie man hier hinkommt
+                                out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: UNBEKANNT\"}");
+                            } else { // alles korrekt
+                                out.println("{\"type\":\"authresponse\",\"success\":true}");
+                                eingeloggt = true;
+                            }
+                        }
+                    } else {
+                        System.out.println("FEHLER IM PROTOKOLL");
+                    }
+                } else { // eingeloggt heißt benutzer != null (hoffentlich)
+                    if (requestType.equals("logout")) {
+                        out.println("{\"type\":\"logoutresponse\"}");
+                        this.benutzer = null;
+                        this.eingeloggt = false;
+                    }
                 }
             }
 
@@ -64,31 +104,31 @@ public class ClientHandler extends Thread {
     }
 
 
-    public void run2() {
+    /*public void run2() {
         int state = 0;
         int subState = 0;
         boolean shouldWait = true;
         JSONObject request = null;
         try (BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-             PrintWriter out = new PrintWriter(client.getOutputStream())){
+             PrintWriter out = new PrintWriter(client.getOutputStream())) {
             while (shouldRun) {
-                if(shouldWait){
-                    while(!in.ready()){ // auf input warten
+                if (shouldWait) {
+                    while (!in.ready()) { // auf input warten
                         Thread.sleep(100);
                     }
                     request = new JSONObject(in.readLine());
                     System.out.println(request);
-                    if(request.get("type").equals("terminate")){
+                    if (request.get("type").equals("terminate")) {
                         // TODO HANDLE THIS
                     }
                 } else {
                     shouldWait = true;
                     request = null;
                 }
-                switch (state){
+                switch (state) {
                     case 0 -> { // auth
-                        if(request.get("type").equals("login")){
-                            if(server.einloggen(request)){
+                        if (request.get("type").equals("login")) {
+                            if (server.einloggen(request)) {
                                 out.println("{\"type\":\"authresponse\",\"success\":true}");
                                 this.benutzer = server.getNutzer(request.getString("name"));
                                 state = 1;
@@ -96,8 +136,8 @@ public class ClientHandler extends Thread {
                             } else {
                                 out.println("{\"type\":\"authresponse\",\"success\":false}");
                             }
-                        } else if (request.get("type").equals("register")){
-                            if(server.registieren(request)){
+                        } else if (request.get("type").equals("register")) {
+                            if (server.registieren(request)) {
                                 out.println("{\"type\":\"authresponse\",\"success\":true}");
                                 this.benutzer = server.getNutzer(request.getString("name"));
                                 state = 1;
@@ -111,17 +151,17 @@ public class ClientHandler extends Thread {
                         out.flush();
                     }
                     case 1 -> { // spielmodus auswählen
-                        switch (subState){
+                        switch (subState) {
                             case 0 -> { // sende spielmodi-optionen
                                 out.println(spielOptionenMSG);
                                 subState = 1;
                             }
                             case 1 -> { // verarbeite auswahl
-                                if(request.get("type").equals("modeselect")){
-                                    switch (request.getInt("mode") * 10){
+                                if (request.get("type").equals("modeselect")) {
+                                    switch (request.getInt("mode") * 10) {
                                         case 0 -> { // random gegner
                                             // TODO hier funktioniert noch nichts
-                                            if(server.lookingForOpponent(this)){
+                                            if (server.lookingForOpponent(this)) {
                                                 out.println("{\"type\":\"queueNotification\",\"ready\":true}");
                                                 this.gegnerGefunden = true;
                                             } else {
@@ -133,7 +173,7 @@ public class ClientHandler extends Thread {
                                             subState = 0;
                                         }
                                         case 10 -> { // freund beitreten
-                                            if(server.joinPrivate(this, request.getLong("uuid"))){ // uuid valid
+                                            if (server.joinPrivate(this, request.getLong("uuid"))) { // uuid valid
                                                 out.println("{\"type\":\"uuidResponse\",\"valid\":true}");
                                                 this.gegnerGefunden = true;
                                                 state = 2;
@@ -156,12 +196,12 @@ public class ClientHandler extends Thread {
                         }
                     }
                     case 2 -> { // Im Spiel
-                        switch (subState){
+                        switch (subState) {
                             case 0 -> { // informieren
                                 out.println();
                             }
                             case 1 -> {
-                                if(this.dran){
+                                if (this.dran) {
                                     out.println();
                                 } else {
 
@@ -171,38 +211,33 @@ public class ClientHandler extends Thread {
                     }
                 }
 
-                /*switch (state) {
-                    case 0 -> {
-
-                    }
-                }*/
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
-    public JSONObject waiting(BufferedReader in){
+    public JSONObject waiting(BufferedReader in) {
         try {
             while (!this.gegnerGefunden) {
                 Thread.sleep(10);
-                if(in.ready()){
+                if (in.ready()) {
                     JSONObject req = new JSONObject(in.readLine());
-                    if(req.getString("type").equals("terminate")){
+                    if (req.getString("type").equals("terminate")) {
                         // TODO handle terminate
                     } else {
                         return req;
                     }
                 }
             }
-        } catch (Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
             System.out.println("FEHLER IM SERVER");
         }
         return new JSONObject("");
-    }
+    }*/
 
-    public void giveGame(SchachSpiel schachSpiel){
+    public void giveGame(SchachSpiel schachSpiel) {
         this.schachSpiel = schachSpiel;
         this.gegnerGefunden = true;
     }
@@ -211,12 +246,17 @@ public class ClientHandler extends Thread {
         return this.UUID;
     }
 
-    public void gegnerGefunden(){
+    public void gegnerGefunden() {
         this.gegnerGefunden = true;
     }
 
-    public void stoppe() {
+    public void terminate() { // diese funktion heißt client schließt die Verbindung
+        // TODO implementieren
+    }
+
+    public void stoppe() { // diese funktion ist eine funktion, die nur vom Server aufgerufen werden soll, wenn dieser gestoppt wird
         this.shouldRun = false;
+        // TODO mehr stuff handel
     }
 
 }

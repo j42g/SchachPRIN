@@ -2,250 +2,319 @@ package io.client;
 
 import org.json.JSONObject;
 
-import java.io.*;
-import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner;
 
-public class Client implements Runnable, Serializable {
+public class Client implements Runnable {
 
-    private final String terminateMSG = """
-            {"type":"terminate"}
-            """;
+    private final String[] alleSpielmodi = new String[]{"RANDOM GEGNER", "PRIVATES SPIEL ERSTELLEN", "PRIVATEM SPIEL BEITRETEN"};
+    private final String[] alleBefehle = new String[]{"VERBINDEN", "EXIT", "TRENNEN", "ANMELDEN", "REGISTRIEREN", "ABMELDEN", "EXIT", "SPIELMODI", "AUFGEBEN", "VERLASSEN"};
 
-    private int state;
+    private Verbinder v;
+
+    private boolean verbunden;
+    private boolean eingeloggt;
+    private boolean imSpiel;
+    private boolean amZug;
+    private boolean spielVorbei;
 
     public Client() {
-        this.state = 0;
+        this.v = null;
+        this.verbunden = false;
+        this.eingeloggt = false;
+        this.imSpiel = false;
+        this.amZug = false;
+        this.spielVorbei = false;
     }
 
     @Override
     public void run() {
         Scanner s = new Scanner(System.in);
-        try (Socket server = new Socket("127.0.0.1", 7777);
-             BufferedReader in = new BufferedReader(new InputStreamReader(server.getInputStream()));
-             PrintWriter out = new PrintWriter(server.getOutputStream())) {
-            JSONObject msg = null;
-            String input = null;
-            int subState = 0; // um im loginvorgang oder wo anders den state zu unterscheidgen (muss am Ende wieder auf 0 gesetzt werden?)
-            int temp = -1;
-            int max = -1;
-            String name = null;
-            String password = null;
-            boolean shouldSkipInput = true;
-            System.out.println("STARTE CLIENT. SIE KÖNNEN JEDERZEIT DURCH \"EXIT\" DEN CLIENT STOPPEN");
-            while (true) {
-                if(shouldSkipInput){
-                    shouldSkipInput = false;
-                } else {
-                    input = s.nextLine();
-                    if (input.equals("EXIT")) {
-                        out.println(terminateMSG);
-                        break;
-                    }
+        String input;
+        System.out.print("STARTE CLIENT. BEFEHLE: " + alleBefehle[0]);
+        ArrayList<String> verfuegbareBefehle = new ArrayList<String>();
+        for (int i = 1; i < alleBefehle.length; i++) {
+            System.out.print(", " + alleBefehle[i]);
+        }
+        System.out.println("VERFÜGBARE BEFEHLE: VERBINDEN, EXIT");
+        while (true) {
+            input = s.nextLine().toUpperCase();
+            if (!Arrays.asList(this.alleBefehle).contains(input)) {
+                System.out.println("UNBEKANNTER BEFEHL");
+                continue;
+            }
+
+            // LOGIK
+            if (!verbunden) {
+                if (input.equals("VERBINDEN")) {
+                    verbinde();
+                } else if (input.equals("EXIT")) {
+                    return;
                 }
-
-                switch (state) {
-                    case 0 -> { // AUTHO
-                        switch (subState) {
-                            case 0 -> { // erste nachricht anzeigen
-                                System.out.println("EINLOGGEN (0) ODER REGISTIEREN (1)");
-                                subState = 1;
+            } else { // VERBUNDEN
+                if (!eingeloggt) {
+                    if (input.equals("TRENNEN")) {
+                        trenne();
+                    } else if (input.equals("ANMELDEN")) {
+                        anmelden();
+                    } else if (input.equals("REGISTRIEREN")) {
+                        registrieren();
+                    }
+                } else { // EINGELOGGT
+                    if (!imSpiel) {
+                        if (input.equals("ABMELDEN")) {
+                            abmelden();
+                        } else if (input.equals("SPIELMODI")) {
+                            spielmodiAuswahl();
+                        }
+                    } else { // IM SPIEL
+                        if (spielVorbei) {
+                            if (input.equals("SPIELMODI")) {
+                                spielmodiAuswahl();
                             }
-                            case 1 -> { // einloggen oder registieren
-                                if (isInteger(input)) {
-                                    temp = Integer.parseInt(input);
-                                    if (temp == 0) { // einloggen
-                                        System.out.println("GEGEN SIE IHREN BENUTZERNAME EIN");
-                                        subState = 20;
-                                    } else if (temp == 1) { // registrieren
-                                        System.out.println("WÄHLEN SIE IHREN BENUTZERNAME EIN");
-                                        subState = 30;
-                                    } else {
-                                        System.out.println("EINGABE MUSS 0 ODER 1 SEIN");
-                                    }
-                                } else {
-                                    System.out.println("EINGABE IST KEINE ZAHL");
-                                }
+                        } else { // nicht vorbei
+                            if (input.equals("AUFGEBEN")) {
+                                v.sendeJSON(new JSONObject("{\"type\":\"forfeit\"}"));
+                            } else if (input.equals("VERLASSEN")) {
+                                v.sendeJSON(new JSONObject("{\"type\":\"leave\"}"));
                             }
-                            case 20 -> { // einloggen benutzername
-                                name = input;
-                                System.out.println("GEGEN SIE IHR PASSWORD EIN");
-                                subState = 50; // Daten senden
-                            }
-                            case 30 -> { // registrieren
-                                name = input;
-                                System.out.println("WÄHLEN SIE IHR PASSWORD");
-                                subState = 50;
-
-                            }
-                            case 50 -> { // Daten senden
-                                password = input;
-                                if (temp == 0) { // einloggen
-                                    out.println(String.format("{\"type\":\"login\",\"name\":\"%s\",\"password\":%s}", name, hashPassword(password)));
-                                } else if (temp == 1) { // registrieren
-                                    out.println(String.format("{\"type\":\"register\",\"name\":\"%s\",\"password\":%s}", name, hashPassword(password)));
-                                }
-                                out.flush();
-                                msg = getServerMsg(in);
-                                if (msg.get("type").equals("authresponse")) {
-                                    if (msg.getBoolean("success")) { // Erfolgreich
-                                        if (temp == 0) {
-                                            System.out.println("ERFOLGREICH EINGELOGGT");
-                                        } else if (temp == 1) {
-                                            System.out.println("ERFOLGREICH REGISTRIERT");
-                                        }
-                                        state = 1;
-                                        subState = 0;
-                                    } else { // Fehlgeschlagen
-                                        if (temp == 0) {
-                                            System.out.println("EINLOGGEN FEHLGESCHLAGEN");
-                                        } else if (temp == 1) {
-                                            System.out.println("REGISTRIERUNG FEHLGESCHLAGEN");
-                                        }
-                                        subState = 0;
-                                        shouldSkipInput = true;
-                                    }
-
-                                } else {
-                                    System.out.println("FEHLER IM PROTOKOLL");
-                                }
+                            if (amZug) {
+                                // TODO
+                            } else { // nicht am Zug
+                                System.out.println("SIE SIND NICHT AM ZUG");
                             }
                         }
-                    }
-                    case 1 -> { // SPIELMODE AUSWÄHLEN
-                        switch (subState){
-                            case 0 -> { // empfangen + ausgeben
-                                System.out.print("SPIELMODUS AUSWÄHLEN: ");
-                                msg = getServerMsg(in);
-                                if(msg.getString("type").equals("options")){
-                                    max = msg.getInt("max"); // in case 1 wirds gebraucht
-                                    StringBuilder options = new StringBuilder();
-                                    Iterator<Object> it = msg.getJSONArray("options").iterator();
-                                    for (int i = 0; it.hasNext(); i++) {
-                                        options.append((String)it.next());
-                                        options.append("(").append(i).append(")");
-                                    }
-                                    System.out.println(options);
-                                    subState = 1;
-                                } else {
-                                    System.out.println("FEHLER IM PROTKOLL");
-                                }
-                            }
-                            case 1 -> { // wählen
-                                if (isInteger(input)) {
-                                    temp = Integer.parseInt(input);
-                                    if (-1 < temp && temp < max) {
-                                        System.out.println("AUSWAHL ERFOLGT");
-                                        subState = temp * 10 + 10; // handeln der auswahl
-                                        shouldSkipInput = true; // erstmal kein input, erstmal nichts senden
-                                    } else {
-                                        System.out.println("KEINE GÜLTIGE OPTION");
-                                    }
-                                } else {
-                                    System.out.println("EINGABE IST KEINE ZAHL");
-                                }
-                            }
-                            case 10 -> { // mit zufälligem Gegner spielen
-                                System.out.println("BEITRETEN DER QUEUE");
-                                out.println(String.format("{\"type\":\"modeselect\",\"mode\":%d}", temp));
-                            }
-                            case 20 -> { // Spiel beitreten
-                                System.out.println("UUID DES SPIELS EINGEBEN");
-                                subState = 21;
-                            }
-                            case 21 -> {
-                                if (isInteger(input)) {
-                                    long uuid = Long.parseLong(input);
-                                    out.println(String.format("{\"type\":\"modeselect\",\"mode\":%d,\"uuid\":%d}", temp, uuid));
-                                    subState = 22;
-                                } else {
-                                    System.out.println("EINGABE KEINE ZAHL");
-                                    shouldSkipInput = true;
-                                    subState = 20; // bisschen hässlich so, aber naja
-                                }
-                            }
-                            case 22 -> {
-                                msg = getServerMsg(in);
-                                if(msg.getString("type").equals("queueNotification")){
-                                    if(msg.getBoolean("ready")){
-                                        state = 3;
-                                        subState = 0;
-                                    } else {
-                                        state = 2;
-                                        subState = 0;
-                                    }
-                                } else {
-                                    System.out.println("FEHLER IM PROTOKOLL");
-                                }
-                                // TODO queue handeln: warten oder game starten
-                            }
-                            case 30 -> { // Spiel erstellen
-                                System.out.println("LOBBY ERSTELLT");
-                                msg = getServerMsg(in);
-                                if(msg.getString("type").equals("uuid")){
-                                    System.out.println("UUID IHRER LOBBY: " + msg.getLong("uuid"));
-                                    System.out.println("GEBEN SIE DIESE UUID IHREN MITSPIELER. ER KANN DANN DIESER LOBBY BEITRETEN");
-                                    state = 2;
-                                    subState = 0;
-                                } else {
-                                    System.out.println("FEHLER IM PROTOKOLL");
-                                }
-                            }
-                        }
-                    }
-                    case 2 -> { // AUF GEGNER WARTEN
-                        switch (subState){
-                            case 0 -> { // setup waiting without input
-                                Runnable waiter = new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            while(!in.ready()){
-                                                Thread.sleep(10);
-                                            }
-                                            System.out.println("SPIELER GEFUNDEN");
-                                        } catch (Exception ex){
-                                            ex.printStackTrace();
-                                            System.out.println("FEHLER IM PROGRAMM");
-                                        }
-                                    }
-                                };
-                                Thread waiterThread = new Thread(waiter);
-                                waiterThread.start();
-                                subState = 1;
-                            }
-                            case 1 -> { // hier sind wir, wenn input gekommen ist und das nicht EXIT war
-                                if(!in.ready()){
-                                    System.out.println("KEIN GEGENSPIELER GEFUNDEN. WARTEN SIE WEITER ODER VERLASSEN SIE DAS PROGRAM");
-                                } else {
-                                    // TODO keine Ahnung den Type ins Spiel tuen oder so?
-                                }
-                            }
-                        }
-                    }
-                    case 3 -> { // IM SPIEL
-
-                    }
-                    case 4 -> {
-
                     }
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+
+            // --------------- Welche Befehle kann man verwenden ----------------
+            verfuegbareBefehle.clear();
+            if (!verbunden) {
+                verfuegbareBefehle.add("VERBINDEN");
+                verfuegbareBefehle.add("EXIT");
+            } else { // VERBUNDEN
+                if (!eingeloggt) {
+                    verfuegbareBefehle.add("ANMELDEN");
+                    verfuegbareBefehle.add("REGISTRIEREN");
+                    verfuegbareBefehle.add("TRENNEN");
+                } else { // EINGELOGGT
+                    if (!imSpiel) {
+                        verfuegbareBefehle.add("ABMELDEN");
+                        verfuegbareBefehle.add("SPIELMODI");
+                    } else { // IM SPIEL
+                        if (spielVorbei) {
+                            verfuegbareBefehle.add("SPIELMODI");
+                        } else { // nicht vorbei
+                            verfuegbareBefehle.add("VERLASSEN");
+                            verfuegbareBefehle.add("AUFGEBEN");
+                            if (amZug) {
+                                verfuegbareBefehle.add("[ZUG]");
+                            }
+                        }
+                    }
+                }
+            }
+            System.out.print("VERFÜGBARE BEFEHLE: " + verfuegbareBefehle.get(0));
+            for (int i = 1; i < verfuegbareBefehle.size(); i++) {
+                System.out.print(", " + verfuegbareBefehle.get(i));
+            }
+            System.out.println();
         }
-        // Client gestoppt
-        System.out.println("CLIENT GESTOPPT");
     }
 
-    private JSONObject getServerMsg(BufferedReader in) throws IOException, InterruptedException {
-        while (!in.ready()) {
-            Thread.sleep(10);
+    private void verbinde() {
+        this.verbunden = true;
+        this.v = Verbinder.getInstance();
+    }
+
+    private void trenne() {
+        this.verbunden = false;
+        this.v.trenne();
+        this.v = null;
+        System.out.println("VERBINDUNG GETRENNT");
+    }
+
+    private void anmelden() {
+        Scanner s = new Scanner(System.in);
+        String benutzername;
+        String password;
+        JSONObject antwort;
+        System.out.println("VORGANG ABBRECHEN: \"ABBRECHEN\"");
+        while (true) {
+            do {
+                System.out.println("GEGEN SIE IHREN BENUTZERNAME EIN");
+                benutzername = s.nextLine();
+                if (benutzername.equalsIgnoreCase("ABBRECHEN")) {
+                    System.out.println("VORGANG ABGEBROCHEN");
+                    return;
+                }
+                System.out.println("GEBEN SIE IHR PASSWORT EIN");
+                password = s.nextLine();
+                if (password.equalsIgnoreCase("ABBRECHEN")) {
+                    System.out.println("VORGANG ABGEBROCHEN");
+                    return;
+                }
+                System.out.println("Benutzername:\t" + benutzername + "\nPasswort:\t" + password);
+                System.out.println("WENN SIE DIESE INFORMATIONEN BESTÄTIGEN WOLLEN, GEBEN SIE \"BESTÄTIGEN\" EIN.");
+            } while (!s.nextLine().equals("BESTÄTIGEN"));
+            String hashedpw = hashPassword(password);
+            v.sendeJSON(new JSONObject(String.format("{\"type\":\"login\",\"name\":\"%s\",\"password\":%s}", benutzername, hashedpw)));
+            antwort = serverInput();
+            if (antwort.getString("type").equals("authresponse")) {
+                if (antwort.getBoolean("success")) {
+                    System.out.println("ERFOLGREICH ANGEMELDET");
+                    this.eingeloggt = true;
+                    if (antwort.getLong("opengame") != -1) {
+                        System.out.println("SIE HABEN NOCH EIN OFFENES SPIEL. FALLS SIE EIN ANDERES SPIEL SPIELEN WOLLEN, MÜSSEN SIE DIESES ZUNÄCHST FERTIG SPIELEN ODER AUFGEBEN");
+                        this.imSpiel = true;
+                    }
+                    return;
+                } else {
+                    System.out.println("FEHLER BEIM ANMELDEN. FEHLER: " + antwort.getString("error"));
+                }
+            } else {
+                System.out.println("FEHLER IM PROTOKOLL");
+            }
         }
-        return new JSONObject(in.readLine());
+    }
+
+    private void registrieren() {
+        Scanner s = new Scanner(System.in);
+        String benutzername;
+        String password;
+        JSONObject antwort;
+        System.out.println("VORGANG ABBRECHEN MIT: \"ABBRECHEN\"");
+        while (true) {
+            do {
+                System.out.println("WÄHLEN SIE EINEN BENUTZERNAME");
+                benutzername = s.nextLine();
+                if (benutzername.equalsIgnoreCase("ABBRECHEN")) {
+                    System.out.println("VORGANG ABGEBROCHEN");
+                    return;
+                }
+                System.out.println("WÄHLEN SIE EIN PASSWORT");
+                password = s.nextLine();
+                if (password.equalsIgnoreCase("ABBRECHEN")) {
+                    System.out.println("VORGANG ABGEBROCHEN");
+                    return;
+                }
+                System.out.println("Benutzername:\t" + benutzername + "\nPasswort:\t" + password);
+                System.out.println("WENN SIE DIESE INFORMATIONEN BESTÄTIGEN WOLLEN, GEBEN SIE \"BESTÄTIGEN\" EIN.");
+            } while (!s.nextLine().equals("BESTÄTIGEN"));
+            String hashedpw = hashPassword(password);
+            v.sendeJSON(new JSONObject(String.format("{\"type\":\"register\",\"name\":\"%s\",\"password\":%s}", benutzername, hashedpw)));
+            antwort = serverInput();
+            if (antwort.getString("type").equals("authresponse")) {
+                if (antwort.getBoolean("success")) {
+                    System.out.println("ERFOLGREICH REGISTRIERT");
+                    this.eingeloggt = true;
+                    return;
+                } else {
+                    System.out.println("FEHLER BEIM REGISTRIEREN. FEHLER: " + antwort.getString("error"));
+                }
+            } else {
+                System.out.println("FEHLER IM PROTOKOLL");
+            }
+        }
+    }
+
+    private void abmelden() {
+        System.out.println("ABMELDEN..");
+        v.sendeJSON(new JSONObject("{\"type\":\"logout\"}"));
+        JSONObject response = serverInput();
+        if (response.getString("type").equals("logoutresponse")) {
+            System.out.println("ABMELDUNG ERFOLGREICH");
+            this.eingeloggt = false;
+        } else {
+            System.out.println("FEHLER IM PROTOKOLL");
+        }
+    }
+
+    private void spielmodiAuswahl() {
+        Scanner s = new Scanner(System.in);
+        String input;
+        int modi;
+        System.out.println("VORGANG ABBRECHEN: \"ABBRECHEN\"");
+        while (true) {
+            System.out.println("WÄHLEN SIE EINEN SPIELMODE:");
+            for (int i = 0; i < alleSpielmodi.length; i++) {
+                System.out.println(i + ":\t" + alleSpielmodi[i]);
+            }
+            input = s.nextLine();
+            if (input.equalsIgnoreCase("ABBRECHEN")) {
+                System.out.println("VORGANG ABGEBROCHEN");
+                return;
+            }
+            if (isInteger(input)) {
+                modi = Integer.parseInt(input);
+                if (-1 < modi && modi < alleSpielmodi.length) {
+                    break;
+                } else {
+                    System.out.println("EINGABE KEIN GÜLTIGER SPIELMODE");
+                }
+            } else {
+                System.out.println("EINGABE KEINE ZAHL");
+            }
+        }
+        // mode-abhängige Daten
+        if(modi == 2){ // uuid, des spiels, dem man beitreten will
+            long uuid;
+            while(true){
+                input = s.nextLine();
+                if (input.equalsIgnoreCase("ABBRECHEN")) {
+                    System.out.println("VORGANG ABGEBROCHEN");
+                    return;
+                }
+                if (isInteger(input)) {
+                    uuid = Long.parseLong(input);
+                    break;
+                } else {
+                    System.out.println("EINGABE KEINE ZAHL");
+                }
+            }
+            v.sendeJSON(new JSONObject(String.format("{\"type\":\"modeselect\",\"mode\":%d,\"uuid\":%d}", modi, uuid)));
+        } else { // andere Modi
+            v.sendeJSON(new JSONObject(String.format("{\"type\":\"modeselect\",\"mode\":%d}", modi)));
+        }
+
+        JSONObject antwort = serverInput();
+        if(antwort.getString("type").equals("modeconfirm")){
+            if(antwort.getInt("mode") == modi){
+                System.out.println("AUSWAHL ERFOLGT");
+            } else {
+                System.out.println("FEHLER BEI DER BESTÄTIGUNG DER AUSWAHL");
+            }
+        } else {
+            System.out.println("FEHLER BEIM PROTOKOLL");
+        }
+
+        if(modi == 0){
+            if(antwort.getBoolean("ready")){
+                System.out.println("GEGNER GEFUNDEN. SPIEL STARTET");
+            } else {
+                System.out.println("QUEUE BEIGETRETEN");
+                // TODO warten machen
+            }
+        } else if (modi == 1) {
+            System.out.println("LOBBY ERSTELLT. UUID=" + antwort.getLong("uuid") + ". GEBEN SIE DIESE UUID EINEM FREUND, DER IHNEN DANN BEITRETEN KANN");
+        } else if (modi == 2) {
+            System.out.println("LOBBY BEIGETRETEN");
+        }
+        System.out.println("SPIEL STARTET");
+    }
+
+    private JSONObject serverInput() {
+        JSONObject res = v.warteAufJSON();
+        if(res.getString("type").equals("{\"type\":\"serverclose\"}")){
+            System.out.println("SERVER SCHLIEßT");
+            System.exit(0);
+        }
+        return res;
     }
 
     private String hashPassword(String password) {
@@ -259,7 +328,7 @@ public class Client implements Runnable, Serializable {
         StringBuilder jsonArr = new StringBuilder();
         jsonArr.append("[");
         jsonArr.append(hashedPw[0]);
-        for(int i = 1; i < hashedPw.length; i++){
+        for (int i = 1; i < hashedPw.length; i++) {
             jsonArr.append(",");
             jsonArr.append(hashedPw[i]);
         }
@@ -286,8 +355,9 @@ public class Client implements Runnable, Serializable {
     }
 
     public static void main(String[] args) {
-
+        Client client = new Client();
+        Thread clientThread = new Thread(client);
+        clientThread.start();
     }
-
 
 }

@@ -93,7 +93,14 @@ public class Server implements Runnable {
         // TODO a und b müssen irgendwie an das game kommen
     }
 
-    public synchronized boolean einloggen(JSONObject benutzer){
+    public boolean existiertNutzer(JSONObject benutzer) {
+        return bm.existiertBenutzer(benutzer.getString("name"));
+    }
+
+    public synchronized Benutzer einloggen(JSONObject benutzer){
+        if (!bm.existiertBenutzer(benutzer.getString("name"))){
+            return null;
+        }
         byte[] passwordArr = new byte[32];
         Iterator<Object> it = benutzer.getJSONArray("password").iterator();
         int temp;
@@ -104,7 +111,10 @@ public class Server implements Runnable {
         return bm.einloggen(benutzer.getString("name"), passwordArr);
     }
 
-    public synchronized boolean registieren(JSONObject benutzer) {
+    public synchronized Benutzer registieren(JSONObject benutzer) {
+        if (bm.existiertBenutzer(benutzer.getString("name"))){
+            return null;
+        }
         byte[] passwordArr = new byte[32];
         Iterator<Object> it = benutzer.getJSONArray("password").iterator();
         int temp;
@@ -112,11 +122,7 @@ public class Server implements Runnable {
             temp = (int) it.next();
             passwordArr[i] = (byte) temp;
         }
-        return bm.registieren(benutzer.getString("name"), passwordArr);
-    }
-
-    public Benutzer getNutzer(String name){
-        return bm.getNutzer(name);
+        return bm.registrieren(benutzer.getString("name"), passwordArr);
     }
 
     public synchronized boolean lookingForOpponent(ClientHandler client){
@@ -148,6 +154,5 @@ public class Server implements Runnable {
     public void stoppe() {
         this.shouldRun = false;
     }
-
 
 }

@@ -1,18 +1,18 @@
 import io.client.Client;
 import io.server.ServerVerwaltung;
-import org.json.JSONObject;
-
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
 
 public class Main {
 
-    public static void main(String[] args) throws NoSuchAlgorithmException {
+    public static void main(String[] args) {
 
-        //ServerVerwaltung.main(null);
-        //Client.main(null);
+        ServerVerwaltung server = new ServerVerwaltung();
+        Client client = new Client();
+
+        Thread serverThread = new Thread(server);
+        Thread clientThread = new Thread(client);
+
+        serverThread.start();
+        clientThread.start();
 
     }
 

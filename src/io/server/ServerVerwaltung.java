@@ -18,7 +18,7 @@ public class ServerVerwaltung implements Runnable {
         String input;
         System.out.println("STARTE PROGRAMM. BEFEHLE: \"START\", \"STOP\" und \"EXIT\"");
         while(true){
-            input = s.nextLine();
+            input = s.nextLine().toUpperCase();
             switch (input) {
                 case "START" -> {
                     if (this.aktiv) {

@@ -21,7 +21,7 @@ public class Verbinder {
         try {
             server = new Socket("127.0.0.1", 7777);
             in = new BufferedReader(new InputStreamReader(server.getInputStream()));
-            out = new PrintWriter(server.getOutputStream());
+            out = new PrintWriter(server.getOutputStream(), true);
             System.out.println("VERBINDUNG AUFGEBAUT");
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -31,6 +31,7 @@ public class Verbinder {
 
     public void trenne() {
         try {
+            out.println("{\"type\":\"terminate\"}");
             server.close();
             in.close();
             out.close();
@@ -52,7 +53,6 @@ public class Verbinder {
 
     public void sendeJSON(JSONObject json) {
         out.println(json.toString());
-        out.flush();
     }
 
     public JSONObject warteAufJSON(){

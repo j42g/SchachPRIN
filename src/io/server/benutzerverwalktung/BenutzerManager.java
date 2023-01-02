@@ -40,27 +40,29 @@ public class BenutzerManager {
         return false;
     }
 
-    public boolean einloggen(String name, byte[] password) {
+    public Benutzer einloggen(String name, byte[] password) {
         for (Benutzer benutzer : this.benutzer) {
             if (benutzer.getName().equals(name)) {
-                return Arrays.equals(benutzer.getPassword(), password);
+                if (Arrays.equals(benutzer.getPassword(), password)) {
+                    return benutzer;
+                }
             }
         }
-        return false;
+        return null;
     }
 
-    public boolean registieren(String name, byte[] password) {
-        if(existiertBenutzer(name)){
-            return false;
+    public Benutzer registrieren(String name, byte[] password) {
+        if (existiertBenutzer(name)) {
+            return null;
         }
         Benutzer neu = new Benutzer(name, password, -1);
         this.benutzer.add(neu);
-        return true;
+        return neu;
     }
 
-    public Benutzer getNutzer(String name){
-        for(Benutzer nutzer : this.benutzer){
-            if(nutzer.getName().equals(name)){
+    public Benutzer getNutzer(String name) {
+        for (Benutzer nutzer : this.benutzer) {
+            if (nutzer.getName().equals(name)) {
                 return nutzer;
             }
         }
