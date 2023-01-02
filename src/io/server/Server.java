@@ -1,12 +1,15 @@
 package io.server;
 
+import io.Logger;
 import io.server.benutzerverwalktung.Benutzer;
 import io.server.benutzerverwalktung.BenutzerManager;
 import org.json.JSONObject;
 
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Random;
 
 public class Server implements Runnable {
 
@@ -14,17 +17,18 @@ public class Server implements Runnable {
 
     private volatile boolean shouldRun;
 
-    private final BenutzerManager bm = new BenutzerManager(ServerVerwaltung.filename);;
+    private final BenutzerManager bm = new BenutzerManager(ServerVerwaltung.filename);
+    ;
     private final ArrayList<ClientHandler> threads;
     private ClientHandler waitingClient; // random game queue
-    private final ArrayList<ClientHandler> waitingPrivate;
+    private final ArrayList<SchachSpiel> waitingPrivate;
     private final ArrayList<SchachSpiel> schachSpiels;
 
     private Server() {
         this.shouldRun = true;
         this.threads = new ArrayList<ClientHandler>();
         this.waitingClient = null;
-        this.waitingPrivate = new ArrayList<ClientHandler>();
+        this.waitingPrivate = new ArrayList<SchachSpiel>();
         this.schachSpiels = new ArrayList<SchachSpiel>();
     }
 
@@ -67,20 +71,21 @@ public class Server implements Runnable {
         Random gen = new Random();
         do {
             id = gen.nextLong();
-        } while (!isUUIDFree(id) && id > -1);
+        } while (!isClientUUIDFree(id) && id > -1);
         ClientHandler sgt = new ClientHandler(client1, id);
         sgt.start();
         this.threads.add(sgt);
+        Logger.log("server", "Client-Handler-" + id + " gestartet");
     }
 
-    private synchronized void speichereSpiel(String fen){
+    private synchronized void speichereSpiel(String fen) {
         // TODO implementieren
         // Speichern: FEN, Spieler, welcher Spieler welche Farbe hat
         // format JSON
         // Dateiname als static field etc.
     }
 
-    private boolean isUUIDFree(long id) {
+    private boolean isClientUUIDFree(long id) {
         for (ClientHandler sgt : this.threads)
             if (sgt.getUUID() == id) {
                 return false;
@@ -88,17 +93,37 @@ public class Server implements Runnable {
         return true;
     }
 
-    private void createGame(ClientHandler a, ClientHandler b){
-        // TODO auswählen wer weiß ist
-        // TODO a und b müssen irgendwie an das game kommen
+    private long generateGameUUID(){
+        long id;
+        Random gen = new Random();
+        do {
+            id = gen.nextLong();
+        } while (!isGameUUIDFree(id) && id > -1);
+        return id;
+    }
+
+    private boolean isGameUUIDFree(long id) {
+        for (SchachSpiel spiel : waitingPrivate) {
+            if (spiel.getUUID() == id) {
+                return false;
+            }
+        }
+        for (SchachSpiel spiel : schachSpiels) {
+            if (spiel.getUUID() == id) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public boolean existiertNutzer(JSONObject benutzer) {
         return bm.existiertBenutzer(benutzer.getString("name"));
     }
 
-    public synchronized Benutzer einloggen(JSONObject benutzer){
-        if (!bm.existiertBenutzer(benutzer.getString("name"))){
+    public synchronized Benutzer einloggen(JSONObject benutzer) {
+        Logger.log("server", "Versuche " + benutzer.getString("name") + " einzuloggen");
+        if (!bm.existiertBenutzer(benutzer.getString("name"))) {
+            Logger.log("server", benutzer.getString("name") + " existiert nicht");
             return null;
         }
         byte[] passwordArr = new byte[32];
@@ -108,11 +133,19 @@ public class Server implements Runnable {
             temp = (int) it.next();
             passwordArr[i] = (byte) temp;
         }
-        return bm.einloggen(benutzer.getString("name"), passwordArr);
+        Benutzer nutzer = bm.einloggen(benutzer.getString("name"), passwordArr);
+        if (nutzer == null) {
+            Logger.log("server", benutzer.getString("name") + " existiert, Passwort falsch");
+        } else {
+            Logger.log("server", benutzer.getString("name") + " existiert, Passwort korrekt");
+        }
+        return nutzer;
     }
 
-    public synchronized Benutzer registieren(JSONObject benutzer) {
-        if (bm.existiertBenutzer(benutzer.getString("name"))){
+    public synchronized Benutzer registrieren(JSONObject benutzer) {
+        Logger.log("server", "Versuche " + benutzer.getString("name") + " zu registrieren");
+        if (bm.existiertBenutzer(benutzer.getString("name"))) {
+            Logger.log("server", benutzer.getString("name") + " existiert schon");
             return null;
         }
         byte[] passwordArr = new byte[32];
@@ -122,37 +155,49 @@ public class Server implements Runnable {
             temp = (int) it.next();
             passwordArr[i] = (byte) temp;
         }
+        Logger.log("server", benutzer.getString("name") + " registriert");
         return bm.registrieren(benutzer.getString("name"), passwordArr);
     }
 
-    public synchronized boolean lookingForOpponent(ClientHandler client){
-        if(waitingClient == null){
+    public synchronized boolean lookingForOpponent(ClientHandler client) {
+        if (waitingClient == null) {
+            Logger.log("server", client.getUUID() + "tritt Queue bei");
             waitingClient = client;
             return false;
         } else {
-            schachSpiels.add(new SchachSpiel(waitingClient, client));
+            Logger.log("server", client.getUUID() + "findet " + waitingClient.getUUID() + "durch Queue");
+            schachSpiels.add(new SchachSpiel(generateGameUUID(), waitingClient, client));
             return true;
         }
     }
 
     public synchronized boolean joinPrivate(ClientHandler client, long uuid) {
-        for(int i = 0; i < waitingPrivate.size(); i++){
-            if(waitingPrivate.get(i).getUUID() == uuid){
+        Logger.log("server", client.getUUID() + " versucht " + uuid + " beizutreten");
+        for (int i = 0; i < waitingPrivate.size(); i++) {
+            if (waitingPrivate.get(i).getUUID() == uuid) {
                 // TODO create game with them
-                schachSpiels.add(new SchachSpiel(waitingPrivate.get(i), client));
+                schachSpiels.add(waitingPrivate.get(i));
                 waitingPrivate.remove(i);
+                Logger.log("server", client.getUUID() + " tritt " + uuid + " bei");
                 return true;
             }
         }
+        Logger.log("server", client.getUUID() + " konnte " + uuid + " nicht beitreten. " + uuid + " ist kein gültiges Spiel");
         return false;
     }
 
     public synchronized void waitingPrivate(ClientHandler client) {
-        this.waitingPrivate.add(client);
+        Logger.log("server", "Erstelle Schachlobby");
+
+        this.waitingPrivate.add(new SchachSpiel(generateGameUUID(), client));
     }
 
     public void stoppe() {
         this.shouldRun = false;
+        for (ClientHandler thread : threads) {
+            Logger.log("server", "Stoppe Client-Handler-" + thread.getUUID());
+            thread.stoppe();
+        }
     }
 
 }

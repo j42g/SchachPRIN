@@ -42,12 +42,14 @@ public class BenutzerManager {
 
     public Benutzer einloggen(String name, byte[] password) {
         for (Benutzer benutzer : this.benutzer) {
-            if (benutzer.getName().equals(name)) {
-                if (Arrays.equals(benutzer.getPassword(), password)) {
+            if (benutzer.getName().equals(name)) { // richtiger nutzer
+                if (Arrays.equals(benutzer.getPassword(), password)) { // passwort richtig
                     return benutzer;
+                } else { // passwort falsch
+                    return null;
                 }
             }
-        }
+        } // nutzername existiert nicht
         return null;
     }
 

@@ -1,5 +1,6 @@
 package io.server;
 
+import io.Logger;
 import io.server.benutzerverwalktung.Benutzer;
 import org.json.JSONObject;
 
@@ -10,9 +11,9 @@ import java.net.Socket;
 
 public class ClientHandler extends Thread {
 
+    private final static int GAMEMODE_COUNT = 3;
 
     private volatile boolean shouldRun;
-
 
     private boolean eingeloggt;
     private boolean imSpiel;
@@ -51,12 +52,14 @@ public class ClientHandler extends Thread {
                     while (!in.ready() && shouldRun) {
                         Thread.sleep(10);
                     }
-                    request = new JSONObject(in.readLine());
-                    requestType = request.getString("type");
-                    if (requestType.equals("terminate")) {
-                        terminate();
+                    if(shouldRun) { // wenn diese Thread während dem warten gestoppt wird, darf dieser Code nicht ausgeführt werden
+                        request = new JSONObject(in.readLine());
+                        requestType = request.getString("type");
+                        Logger.log("client-handler-" + this.UUID, "Nachricht vom Type \"" + requestType + "\" empfangen");
+                        if (requestType.equals("terminate")) {
+                            terminate();
+                        }
                     }
-
                 } else {
                     inputErwartend = true;
                 }
@@ -77,7 +80,7 @@ public class ClientHandler extends Thread {
                         if (server.existiertNutzer(request)) { // benutzer existiert nicht schon
                             out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: BENUTZER EXISTIERT SCHON\"}");
                         } else {
-                            this.benutzer = server.registieren(request);
+                            this.benutzer = server.registrieren(request);
                             if (this.benutzer == null) { // gute Frage wie man hier hinkommt
                                 out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: UNBEKANNT\"}");
                             } else { // alles korrekt
@@ -89,11 +92,42 @@ public class ClientHandler extends Thread {
                         System.out.println("FEHLER IM PROTOKOLL");
                     }
                 } else { // eingeloggt heißt benutzer != null (hoffentlich)
-                    if (requestType.equals("logout")) {
-                        out.println("{\"type\":\"logoutresponse\"}");
-                        this.benutzer = null;
-                        this.eingeloggt = false;
+                    if (!imSpiel) {
+                        if (requestType.equals("logout")) {
+                            out.println("{\"type\":\"logoutresponse\"}");
+                            this.benutzer = null;
+                            this.eingeloggt = false;
+                        } else if (requestType.equals("modeselect")) {
+                            int gamemode = request.getInt("mode");
+                            switch (gamemode) {
+                                case 0 -> { // random game
+                                    if(server.lookingForOpponent(this)){ // gegner verfügbar
+                                        out.println("{\"type:\"modeconfirm\",\"mode\":0,\"ready\":true}");
+                                        this.imSpiel = true;
+                                    } else { // muss warten
+                                        out.println("{\"type:\"modeconfirm\",\"mode\":0,\"ready\":false}");
+                                        // TODO
+                                    }
+                                }
+                                case 1 -> { // private lobby erstellt
+                                    server.waitingPrivate(this);
+                                    System.out.println(String.format("{\"type:\"modeconfirm\",\"mode\":1,\"uuid\":%d}", this.UUID));
+                                    out.println(String.format("{\"type:\"modeconfirm\",\"mode\":1,\"uuid\":%d}", this.schachSpiel.getUUID()));
+                                    this.imSpiel = true;
+                                }
+                                case 2 -> { // privater lobby beitreten
+                                    if(server.joinPrivate(this, request.getLong("uuid"))){
+                                        out.println("{\"type:\"modeconfirm\",\"mode\":1");
+                                    } else {
+                                        out.println("{\"type:\"modedeny\",\"error\":\"ES EXISTIERT KEIN SPIEL MIT DIESER UUID\"}");
+                                    }
+                                }
+                            }
+                        }
+                    } else { // im spiel
+
                     }
+
                 }
             }
 
@@ -246,17 +280,30 @@ public class ClientHandler extends Thread {
         return this.UUID;
     }
 
+    public SchachSpiel getSpiel() {
+        return this.schachSpiel;
+    }
+
     public void gegnerGefunden() {
         this.gegnerGefunden = true;
     }
 
     public void terminate() { // diese funktion heißt client schließt die Verbindung
+        this.shouldRun = false;
         // TODO implementieren
     }
 
     public void stoppe() { // diese funktion ist eine funktion, die nur vom Server aufgerufen werden soll, wenn dieser gestoppt wird
         this.shouldRun = false;
         // TODO mehr stuff handel
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof ClientHandler e) {
+            return this.UUID == e.UUID;
+        }
+        return false;
     }
 
 }

@@ -30,7 +30,7 @@ public class Benutzer {
     }
 
     public boolean hatAktivesSpiel() {
-        return this.uuidOffenesSpiel == -1;
+        return this.uuidOffenesSpiel != -1;
     }
 
     public JSONObject toJSONObject() {

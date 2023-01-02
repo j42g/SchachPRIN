@@ -1,5 +1,6 @@
 package io.client;
 
+import io.Logger;
 import org.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
@@ -36,6 +37,7 @@ public class Client implements Runnable {
         Scanner s = new Scanner(System.in);
         String input;
         System.out.print("STARTE CLIENT. BEFEHLE: " + alleBefehle[0]);
+        Logger.log("client", "Starte Client");
         ArrayList<String> verfuegbareBefehle = new ArrayList<String>();
         for (int i = 1; i < alleBefehle.length; i++) {
             System.out.print(", " + alleBefehle[i]);
@@ -130,6 +132,7 @@ public class Client implements Runnable {
     private void verbinde() {
         this.verbunden = true;
         this.v = Verbinder.getInstance();
+        Logger.log("client", "Verbindung zu Server aufgebaut");
     }
 
     private void trenne() {
@@ -137,9 +140,11 @@ public class Client implements Runnable {
         this.v.trenne();
         this.v = null;
         System.out.println("VERBINDUNG GETRENNT");
+        Logger.log("client", "Verbindung zum Server getrennt");
     }
 
     private void anmelden() {
+        Logger.log("client", "Starte Anmeldevorgang");
         Scanner s = new Scanner(System.in);
         String benutzername;
         String password;
@@ -151,39 +156,48 @@ public class Client implements Runnable {
                 benutzername = s.nextLine();
                 if (benutzername.equalsIgnoreCase("ABBRECHEN")) {
                     System.out.println("VORGANG ABGEBROCHEN");
+                    Logger.log("client", "Anmeldevorgange abgebrochen");
                     return;
                 }
                 System.out.println("GEBEN SIE IHR PASSWORT EIN");
                 password = s.nextLine();
                 if (password.equalsIgnoreCase("ABBRECHEN")) {
                     System.out.println("VORGANG ABGEBROCHEN");
+                    Logger.log("client", "Anmeldevorgange abgebrochen");
                     return;
                 }
                 System.out.println("Benutzername:\t" + benutzername + "\nPasswort:\t" + password);
                 System.out.println("WENN SIE DIESE INFORMATIONEN BESTÄTIGEN WOLLEN, GEBEN SIE \"BESTÄTIGEN\" EIN.");
             } while (!s.nextLine().equals("BESTÄTIGEN"));
             String hashedpw = hashPassword(password);
+            Logger.log("client", "Sende Anmeldedaten");
             v.sendeJSON(new JSONObject(String.format("{\"type\":\"login\",\"name\":\"%s\",\"password\":%s}", benutzername, hashedpw)));
             antwort = serverInput();
+            Logger.log("client", "Antwort empfangen");
             if (antwort.getString("type").equals("authresponse")) {
                 if (antwort.getBoolean("success")) {
                     System.out.println("ERFOLGREICH ANGEMELDET");
+                    Logger.log("client", "Anmeldung erfolgreich");
                     this.eingeloggt = true;
                     if (antwort.getLong("opengame") != -1) {
+                        Logger.log("client", "Offenes Spiel gefunden");
                         System.out.println("SIE HABEN NOCH EIN OFFENES SPIEL. FALLS SIE EIN ANDERES SPIEL SPIELEN WOLLEN, MÜSSEN SIE DIESES ZUNÄCHST FERTIG SPIELEN ODER AUFGEBEN");
                         this.imSpiel = true;
                     }
                     return;
                 } else {
+                    Logger.log("client", "Anmeldevorgang fehlgeschlagen. Grund: " + antwort.getString("error"));
                     System.out.println("FEHLER BEIM ANMELDEN. FEHLER: " + antwort.getString("error"));
                 }
             } else {
+                Logger.log("client", "Fehler im Protokoll");
                 System.out.println("FEHLER IM PROTOKOLL");
             }
         }
     }
 
     private void registrieren() {
+        Logger.log("client", "Starte Registrierungsvorgang");
         Scanner s = new Scanner(System.in);
         String benutzername;
         String password;
@@ -207,17 +221,21 @@ public class Client implements Runnable {
                 System.out.println("WENN SIE DIESE INFORMATIONEN BESTÄTIGEN WOLLEN, GEBEN SIE \"BESTÄTIGEN\" EIN.");
             } while (!s.nextLine().equals("BESTÄTIGEN"));
             String hashedpw = hashPassword(password);
+            Logger.log("client", "Sende Registrierungsdaten");
             v.sendeJSON(new JSONObject(String.format("{\"type\":\"register\",\"name\":\"%s\",\"password\":%s}", benutzername, hashedpw)));
             antwort = serverInput();
             if (antwort.getString("type").equals("authresponse")) {
                 if (antwort.getBoolean("success")) {
+                    Logger.log("client", "Registrierung erfolgreich");
                     System.out.println("ERFOLGREICH REGISTRIERT");
                     this.eingeloggt = true;
                     return;
                 } else {
+                    Logger.log("client", "Registrierungsvorgang fehlgeschlagen. Grund: " + antwort.getString("error"));
                     System.out.println("FEHLER BEIM REGISTRIEREN. FEHLER: " + antwort.getString("error"));
                 }
             } else {
+                Logger.log("client", "Fehler im Protokoll");
                 System.out.println("FEHLER IM PROTOKOLL");
             }
         }
@@ -225,12 +243,15 @@ public class Client implements Runnable {
 
     private void abmelden() {
         System.out.println("ABMELDEN..");
+        Logger.log("client", "Abmeldung gesendet");
         v.sendeJSON(new JSONObject("{\"type\":\"logout\"}"));
         JSONObject response = serverInput();
         if (response.getString("type").equals("logoutresponse")) {
+            Logger.log("client", "Abmeldung erfolgreich");
             System.out.println("ABMELDUNG ERFOLGREICH");
             this.eingeloggt = false;
         } else {
+            Logger.log("client", "Abmeldung fehlgeschlagen");
             System.out.println("FEHLER IM PROTOKOLL");
         }
     }
@@ -288,8 +309,12 @@ public class Client implements Runnable {
                 System.out.println("AUSWAHL ERFOLGT");
             } else {
                 System.out.println("FEHLER BEI DER BESTÄTIGUNG DER AUSWAHL");
+                return;
             }
-        } else {
+        } else if (antwort.getString("type").equals("modedeny")){
+            System.out.println("FEHLER BEI DER AUSWAHL. FEHLER: " + antwort.getString("error"));
+            return;
+        }else {
             System.out.println("FEHLER BEIM PROTOKOLL");
         }
 
@@ -306,6 +331,8 @@ public class Client implements Runnable {
             System.out.println("LOBBY BEIGETRETEN");
         }
         System.out.println("SPIEL STARTET");
+        this.imSpiel = true;
+        this.spielVorbei = false;
     }
 
     private JSONObject serverInput() {

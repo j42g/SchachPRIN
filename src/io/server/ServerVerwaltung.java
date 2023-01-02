@@ -1,5 +1,7 @@
 package io.server;
 
+import io.Logger;
+
 import java.util.Scanner;
 
 public class ServerVerwaltung implements Runnable {
@@ -8,16 +10,17 @@ public class ServerVerwaltung implements Runnable {
 
     private boolean aktiv;
 
-    public ServerVerwaltung(){
+    public ServerVerwaltung() {
         this.aktiv = false;
     }
 
     @Override
-    public void run(){
+    public void run() {
         Scanner s = new Scanner(System.in);
         String input;
         System.out.println("STARTE PROGRAMM. BEFEHLE: \"START\", \"STOP\" und \"EXIT\"");
-        while(true){
+        Logger.log("server-verwaltung", "Server-Thread gestartet");
+        while (true) {
             input = s.nextLine().toUpperCase();
             switch (input) {
                 case "START" -> {
@@ -41,6 +44,7 @@ public class ServerVerwaltung implements Runnable {
                         System.out.println("SERVER MUSS ERST GESTOPPT WERDEN");
                     } else {
                         System.out.println("BEENDE PROGRAMM");
+                        Logger.log("server-verwaltung", "Server-Thread beendet");
                         return;
                     }
                 }
@@ -54,6 +58,7 @@ public class ServerVerwaltung implements Runnable {
         Server server = Server.getServer();
         server.stoppe();
         System.out.println("SERVER GESTOPPT");
+        Logger.log("server-verwaltung", "Server gestoppt");
     }
 
     private void starte() {
@@ -62,9 +67,10 @@ public class ServerVerwaltung implements Runnable {
         serverThread.start();
         this.aktiv = true;
         System.out.println("SERVER GESTARTET");
+        Logger.log("server-verwaltung", "Server gestartet");
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         ServerVerwaltung s = new ServerVerwaltung();
         Thread sThread = new Thread(s);
         sThread.start();
