@@ -2,7 +2,6 @@ package io.server;
 
 import io.Logger;
 import io.server.benutzerverwalktung.Benutzer;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -20,7 +19,7 @@ public class ClientHandler extends Thread {
     private boolean amZug;
     private boolean spielVorbei;
     private final Server server;
-    private SchachSpiel schachSpiel;
+    private SchachSpiel game;
     private final long UUID;
     private final Socket client;
     private Benutzer benutzer;
@@ -110,7 +109,7 @@ public class ClientHandler extends Thread {
                                 }
                                 case 1 -> { // private lobby erstellt
                                     server.waitingPrivate(this);
-                                    out.println(String.format("{\"type:\"modeconfirm\",\"mode\":1,\"uuid\":%d}", this.schachSpiel.getUUID()));
+                                    out.println(String.format("{\"type:\"modeconfirm\",\"mode\":1,\"uuid\":%d}", this.game.getUUID()));
                                     this.imSpiel = true;
                                 }
                                 case 2 -> { // privater lobby beitreten
@@ -123,7 +122,7 @@ public class ClientHandler extends Thread {
                             }
                         }
                     } else { // im spiel
-
+                        leaveGame();
                     }
 
                 }
@@ -156,9 +155,18 @@ public class ClientHandler extends Thread {
 
     }
 
+    public void leaveGame() {
+        Logger.log("client-handler-" + this.UUID, "Verlässt game " + this.game.getUUID());
+        this.game.leaveGame(this);
+    }
+
     public void giveGame(SchachSpiel schachSpiel) {
-        this.schachSpiel = schachSpiel;
+        this.game = schachSpiel;
         this.imSpiel = true;
+    }
+
+    public void requestMove() {
+        this.amZug = true;
     }
 
     public long getUUID() {
@@ -166,7 +174,7 @@ public class ClientHandler extends Thread {
     }
 
     public SchachSpiel getSpiel() {
-        return this.schachSpiel;
+        return this.game;
     }
 
     public void gegnerGefunden() {

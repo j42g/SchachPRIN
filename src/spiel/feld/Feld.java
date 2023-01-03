@@ -18,7 +18,7 @@ public class Feld {
             feld[x][7] = reihenfolgeS[x];
             feld[x][6] = new Bauer(SCHWARZ);
         }
-        for (int x = 0; x < 8; x++) { // wei�
+        for (int x = 0; x < 8; x++) { // weiß
             feld[x][1] = new Bauer(WEISS);
             feld[x][0] = reihenfolgeW[x];
         }
@@ -82,6 +82,5 @@ public class Feld {
         }
         return res;
     }
-
 
 }

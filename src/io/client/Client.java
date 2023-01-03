@@ -336,7 +336,11 @@ public class Client implements Runnable {
     }
 
     private void queue() {
-        System.out.println("SIE BEFINDEN SICH IN DER QUEUE");
+        System.out.println("SIE BEFINDEN SICH IN DER QUEUE. UM DIE QUEUE ZU VERLASSEN GEGBEN SIE \"VERLASSEN\" EIN");
+        Scanner s = new Scanner(System.in);
+        while(true) {
+            // TODO
+        }
     }
 
     private JSONObject serverInput() {
