@@ -323,7 +323,7 @@ public class Client implements Runnable {
                 System.out.println("GEGNER GEFUNDEN. SPIEL STARTET");
             } else {
                 System.out.println("QUEUE BEIGETRETEN");
-                // TODO warten machen
+                queue();
             }
         } else if (modi == 1) {
             System.out.println("LOBBY ERSTELLT. UUID=" + antwort.getLong("uuid") + ". GEBEN SIE DIESE UUID EINEM FREUND, DER IHNEN DANN BEITRETEN KANN");
@@ -333,6 +333,10 @@ public class Client implements Runnable {
         System.out.println("SPIEL STARTET");
         this.imSpiel = true;
         this.spielVorbei = false;
+    }
+
+    private void queue() {
+        System.out.println("SIE BEFINDEN SICH IN DER QUEUE");
     }
 
     private JSONObject serverInput() {

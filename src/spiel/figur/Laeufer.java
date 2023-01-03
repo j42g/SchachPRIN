@@ -1,7 +1,9 @@
 package spiel.figur;
 
 public class Laeufer extends Figur {
+
     int[][] moveset;
+
     public Laeufer(int farbe) {
         super(farbe);
         int[][][] result = new int[4][7][2];
@@ -11,6 +13,7 @@ public class Laeufer extends Figur {
         result[3][0]=new int[]{-1,1};
         moveset=breakDown(axis(result));
     }
+
     public String toString() {
         return "L";
         /*

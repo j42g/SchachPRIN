@@ -1,7 +1,9 @@
 package spiel.figur;
 
 public class Springer extends Figur {
+
     private int[][] moveset;
+
     public Springer(int farbe) {
         super(farbe);
         int[][]result = new int[8][2];
@@ -19,6 +21,7 @@ public class Springer extends Figur {
     public int[][] getOffsets() {
         return new int[0][0];
     }
+
     public String toString() {
         return "S";
         /*
@@ -30,7 +33,5 @@ public class Springer extends Figur {
 
          */
     }
-
-
 
 }

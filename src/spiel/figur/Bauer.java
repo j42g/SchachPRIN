@@ -1,7 +1,9 @@
 package spiel.figur;
 
 public class Bauer extends Figur {
-    int[][] moveset = new int[][]{{0,farbe},{0,farbe*2},{1,farbe},{-1,farbe}};
+
+    int[][] moveset = new int[][]{{0, farbe}, {0, farbe * 2}, {1, farbe}, {-1, farbe}};
+
     public Bauer(int farbe) {
         super(farbe);
     }
