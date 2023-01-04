@@ -42,7 +42,7 @@ public class Client implements Runnable {
         for (int i = 1; i < alleBefehle.length; i++) {
             System.out.print(", " + alleBefehle[i]);
         }
-        System.out.println("VERFÜGBARE BEFEHLE: VERBINDEN, EXIT");
+        System.out.println("\nVERFÜGBARE BEFEHLE: VERBINDEN, EXIT");
         while (true) {
             input = s.nextLine().toUpperCase();
             if (!Arrays.asList(this.alleBefehle).contains(input)) {
@@ -72,6 +72,10 @@ public class Client implements Runnable {
                             abmelden();
                         } else if (input.equals("SPIELMODI")) {
                             spielmodiAuswahl();
+                        } else if (input.equals("SPIELREGELN")) {
+                            // TODO Til
+                        } else if (input.equals("RANGLISTE")) {
+                            rangliste();
                         }
                     } else { // IM SPIEL
                         if (spielVorbei) {
@@ -108,6 +112,8 @@ public class Client implements Runnable {
                     if (!imSpiel) {
                         verfuegbareBefehle.add("ABMELDEN");
                         verfuegbareBefehle.add("SPIELMODI");
+                        verfuegbareBefehle.add("SPIELREGELN");
+                        verfuegbareBefehle.add("RANGLISTE");
                     } else { // IM SPIEL
                         if (spielVorbei) {
                             verfuegbareBefehle.add("SPIELMODI");
@@ -256,6 +262,10 @@ public class Client implements Runnable {
         }
     }
 
+    private void rangliste() {
+        // TODO
+    }
+
     private void spielmodiAuswahl() {
         Scanner s = new Scanner(System.in);
         String input;
@@ -321,26 +331,53 @@ public class Client implements Runnable {
         if(modi == 0){
             if(antwort.getBoolean("ready")){
                 System.out.println("GEGNER GEFUNDEN. SPIEL STARTET");
+                this.imSpiel = true;
+                this.spielVorbei = false;
             } else {
                 System.out.println("QUEUE BEIGETRETEN");
                 queue();
             }
         } else if (modi == 1) {
             System.out.println("LOBBY ERSTELLT. UUID=" + antwort.getLong("uuid") + ". GEBEN SIE DIESE UUID EINEM FREUND, DER IHNEN DANN BEITRETEN KANN");
+            this.imSpiel = true;
+            this.spielVorbei = false;
         } else if (modi == 2) {
+            this.imSpiel = true;
+            this.spielVorbei = false;
             System.out.println("LOBBY BEIGETRETEN");
         }
-        System.out.println("SPIEL STARTET");
-        this.imSpiel = true;
-        this.spielVorbei = false;
+
+
     }
 
     private void queue() {
-        System.out.println("SIE BEFINDEN SICH IN DER QUEUE. UM DIE QUEUE ZU VERLASSEN GEGBEN SIE \"VERLASSEN\" EIN");
+        System.out.println("SIE BEFINDEN SICH IN DER QUEUE. UM DIE QUEUE ZU VERLASSEN GEBEN SIE \"VERLASSEN\" EIN");
         Scanner s = new Scanner(System.in);
-        while(true) {
-            // TODO
+        String input;
+        QueueNotifier qn = new QueueNotifier();
+        Thread qnThread = new Thread(qn);
+        qnThread.start();
+        while(!v.queueReady()) {
+            input = s.nextLine().toUpperCase();
+            if (input.equals("VERLASSEN")) {
+                v.sendeJSON(new JSONObject("{\"type\":\"leavequeue\"}"));
+                qn.stoppe();
+                return;
+            } else if (input.equals("AKZEPTIEREN")) {
+                if (v.queueReady()) {
+                    JSONObject antwort = v.warteAufJSON();
+                    if (antwort.getString("type").equals("queueready")) {
+                        this.imSpiel = true;
+                        return;
+                    } else {
+                        System.out.println("FEHLER IM PROTOKOLL");
+                    }
+                } else {
+                    System.out.println("ES WURDE NOCH KEIN GEGNER GEFUNDEN");
+                }
+            }
         }
+        qn.stoppe();
     }
 
     private JSONObject serverInput() {

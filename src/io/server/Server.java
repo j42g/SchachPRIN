@@ -93,7 +93,7 @@ public class Server implements Runnable {
         return true;
     }
 
-    private long generateGameUUID(){
+    private long generateGameUUID() {
         long id;
         Random gen = new Random();
         do {
@@ -168,6 +168,14 @@ public class Server implements Runnable {
             Logger.log("server", client.getUUID() + "findet " + waitingClient.getUUID() + "durch Queue");
             schachSpiels.add(new SchachSpiel(generateGameUUID(), waitingClient, client));
             return true;
+        }
+    }
+
+    public synchronized void removeFromQueue(ClientHandler client) {
+        if (waitingClient.equals(client)) {
+            waitingClient = null;
+        } else {
+            Logger.log("server", "Client-" + client.getUUID() + " konnte nicht aus der Queue entfernt werden");
         }
     }
 

@@ -68,4 +68,19 @@ public class Verbinder {
         return new JSONObject("{\"type\":\"invalid\"}");
     }
 
+    public boolean queueReady() {
+        try {
+            if(!in.ready()){
+                return false;
+            } else {
+                return true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.out.println("Fehler in der Queue");
+            return false;
+        }
+
+    }
+
 }

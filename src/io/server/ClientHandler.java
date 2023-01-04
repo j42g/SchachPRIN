@@ -100,23 +100,23 @@ public class ClientHandler extends Thread {
                             switch (gamemode) {
                                 case 0 -> { // random game
                                     if(server.lookingForOpponent(this)){ // gegner verfügbar
-                                        out.println("{\"type:\"modeconfirm\",\"mode\":0,\"ready\":true}");
+                                        out.println("{\"type\":\"modeconfirm\",\"mode\":0,\"ready\":true}");
                                         this.imSpiel = true;
                                     } else { // muss warten
-                                        out.println("{\"type:\"modeconfirm\",\"mode\":0,\"ready\":false}");
+                                        out.println("{\"type\":\"modeconfirm\",\"mode\":0,\"ready\":false}");
                                         queue(out, in);
                                     }
                                 }
                                 case 1 -> { // private lobby erstellt
                                     server.waitingPrivate(this);
-                                    out.println(String.format("{\"type:\"modeconfirm\",\"mode\":1,\"uuid\":%d}", this.game.getUUID()));
+                                    out.println(String.format("{\"type\":\"modeconfirm\",\"mode\":1,\"uuid\":%d}", this.game.getUUID()));
                                     this.imSpiel = true;
                                 }
                                 case 2 -> { // privater lobby beitreten
                                     if(server.joinPrivate(this, request.getLong("uuid"))){
-                                        out.println("{\"type:\"modeconfirm\",\"mode\":1");
+                                        out.println("{\"type\":\"modeconfirm\",\"mode\":1");
                                     } else {
-                                        out.println("{\"type:\"modedeny\",\"error\":\"ES EXISTIERT KEIN SPIEL MIT DIESER UUID\"}");
+                                        out.println("{\"type\":\"modedeny\",\"error\":\"ES EXISTIERT KEIN SPIEL MIT DIESER UUID\"}");
                                     }
                                 }
                             }
@@ -140,6 +140,7 @@ public class ClientHandler extends Thread {
                 if(in.ready()) {
                     JSONObject req = new JSONObject(in.readLine());
                     if (req.getString("type").equals("leavequeue")) {
+                        server.removeFromQueue(this);
                         return;
                     }
                 }
