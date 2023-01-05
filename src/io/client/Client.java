@@ -85,8 +85,6 @@ public class Client implements Runnable {
                         } else { // nicht vorbei
                             if (input.equals("AUFGEBEN")) {
                                 v.sendeJSON(new JSONObject("{\"type\":\"forfeit\"}"));
-                            } else if (input.equals("VERLASSEN")) {
-                                v.sendeJSON(new JSONObject("{\"type\":\"leave\"}"));
                             }
                             if (amZug) {
                                 // TODO

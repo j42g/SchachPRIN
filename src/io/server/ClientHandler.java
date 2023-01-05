@@ -122,7 +122,7 @@ public class ClientHandler extends Thread {
                             }
                         }
                     } else { // im spiel
-                        leaveGame();
+                        forfeitGame();
                     }
 
                 }
@@ -156,9 +156,9 @@ public class ClientHandler extends Thread {
 
     }
 
-    public void leaveGame() {
-        Logger.log("client-handler-" + this.UUID, "Verlässt game " + this.game.getUUID());
-        this.game.leaveGame(this);
+    public void forfeitGame() {
+        Logger.log("client-handler-" + this.UUID, "Gibt game " + this.game.getUUID());
+        this.game.forfeit(this);
     }
 
     public void giveGame(SchachSpiel schachSpiel) {
@@ -172,6 +172,14 @@ public class ClientHandler extends Thread {
 
     public long getUUID() {
         return this.UUID;
+    }
+
+    public int getElo() {
+        return this.benutzer.getElo();
+    }
+
+    public void setElo(int elo) {
+        this.benutzer.setElo(elo);
     }
 
     public SchachSpiel getSpiel() {

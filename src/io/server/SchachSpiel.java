@@ -2,6 +2,9 @@ package io.server;
 
 public class SchachSpiel implements Runnable {
 
+    // Elo dingens
+    private static final int k = 20;
+
     private volatile boolean shouldRun;
     private volatile int playerCount;
 
@@ -68,13 +71,11 @@ public class SchachSpiel implements Runnable {
         return true;
     }
 
-    public synchronized void leaveGame(ClientHandler client) {
+    public synchronized void forfeit(ClientHandler client) {
         if(client.equals(white)) {
-            white = null;
-            playerCount--;
+            endGame(-1);
         } else if (client.equals(black)) {
-            black = null;
-            playerCount--;
+            endGame(1);
         }
     }
 
@@ -116,6 +117,19 @@ public class SchachSpiel implements Runnable {
 
     public long getUUID() {
         return this.uuid;
+    }
+
+    private void endGame(int endCode) { // -1 Schwarz gewonnen, 0 Unentschieden, 1 Weiss gewonnen
+        double weissPunkte = (endCode + 1d) / 2d;
+        double ratingWeiss = white.getElo();
+        double ratingSchwarz = black.getElo();
+        double erwartungWeiss = 1 / (1 + Math.pow(10, (ratingSchwarz - ratingWeiss) / 400d));
+        double erwartungSchwarz = 1 - erwartungWeiss;
+        int neuRatingWeiss = (int) Math.round(ratingWeiss + k * (weissPunkte - erwartungWeiss));
+        int neuRatingSchwarz = (int) Math.round(ratingSchwarz + k * ((1 - weissPunkte) - erwartungSchwarz));
+        white.setElo(neuRatingWeiss);
+        black.setElo(neuRatingSchwarz);
+        // TODO noch mehr stuff wahrscheinlich
     }
 
 }

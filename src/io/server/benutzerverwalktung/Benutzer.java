@@ -9,7 +9,8 @@ public class Benutzer {
 
     private final String name;
     private final byte[] password;
-    private final long uuidOffenesSpiel;
+    private int elo;
+    private long uuidOffenesSpiel;
 
     public Benutzer(JSONObject benutzer) {
         this.name = (String) benutzer.get("name");
@@ -20,12 +21,14 @@ public class Benutzer {
             temp = (int) it.next();
             this.password[i] = (byte) temp;
         }
+        this.elo = benutzer.getInt("elo");
         this.uuidOffenesSpiel = benutzer.getLong("uuidOffenesSpiel");
     }
 
-    public Benutzer(String name, byte[] password, long uuid) {
+    public Benutzer(String name, byte[] password, int elo, long uuid) {
         this.name = name;
         this.password = Arrays.copyOf(password, password.length);
+        this.elo = elo;
         this.uuidOffenesSpiel = uuid;
     }
 
@@ -49,7 +52,19 @@ public class Benutzer {
         return password;
     }
 
+    public int getElo() {
+        return elo;
+    }
+
+    public void setElo(int elo) {
+        this.elo = elo;
+    }
+
     public long getUuidOffenesSpiel() {
         return uuidOffenesSpiel;
+    }
+
+    public void setUuidOffenesSpiel(long uuid) {
+        this.uuidOffenesSpiel = uuid;
     }
 }

@@ -57,7 +57,7 @@ public class BenutzerManager {
         if (existiertBenutzer(name)) {
             return null;
         }
-        Benutzer neu = new Benutzer(name, password, -1);
+        Benutzer neu = new Benutzer(name, password, 1000, -1);
         this.benutzer.add(neu);
         return neu;
     }
