@@ -34,7 +34,6 @@ public class ClientHandler extends Thread {
         this.eingeloggt = false;
         this.imSpiel = false;
         this.amZug = false;
-        this.spielVorbei = false;
 
     }
 
@@ -50,7 +49,7 @@ public class ClientHandler extends Thread {
                     while (!in.ready() && shouldRun) {
                         Thread.sleep(10);
                     }
-                    if(shouldRun) { // wenn diese Thread während dem warten gestoppt wird, darf dieser Code nicht ausgeführt werden
+                    if (shouldRun) { // wenn diese Thread während dem warten gestoppt wird, darf dieser Code nicht ausgeführt werden
                         request = new JSONObject(in.readLine());
                         requestType = request.getString("type");
                         Logger.log("client-handler-" + this.UUID, "Nachricht vom Type \"" + requestType + "\" empfangen");
@@ -70,7 +69,17 @@ public class ClientHandler extends Thread {
                             if (this.benutzer == null) { // passwort falsch
                                 out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: PASSWORT FALSCH\"}");
                             } else { // alles korrekt
-                                out.println(String.format("{\"type\":\"authresponse\",\"success\":true,\"opengame\":%d}", benutzer.getUuidOffenesSpiel()));
+                                if (benutzer.hatAktivesSpiel()) {
+                                    if (server.checkIfExists(benutzer.getUuidOffenesSpiel())) {
+                                        server.joinPrivate(this, benutzer.getUuidOffenesSpiel());
+                                    } else {
+                                        server.createPrivate(this, benutzer.getUuidOffenesSpiel());
+                                    }
+                                    // TODO
+                                } else {
+                                    out.println("{\"type\":\"authresponse\",\"success\":true,\"opengame\":-1}");
+                                }
+
                                 eingeloggt = true;
                             }
                         }
@@ -99,7 +108,7 @@ public class ClientHandler extends Thread {
                             int gamemode = request.getInt("mode");
                             switch (gamemode) {
                                 case 0 -> { // random game
-                                    if(server.lookingForOpponent(this)){ // gegner verfügbar
+                                    if (server.lookingForOpponent(this)) { // gegner verfügbar
                                         out.println("{\"type\":\"modeconfirm\",\"mode\":0,\"ready\":true}");
                                         this.imSpiel = true;
                                     } else { // muss warten
@@ -113,7 +122,7 @@ public class ClientHandler extends Thread {
                                     this.imSpiel = true;
                                 }
                                 case 2 -> { // privater lobby beitreten
-                                    if(server.joinPrivate(this, request.getLong("uuid"))){
+                                    if (server.joinPrivate(this, request.getLong("uuid"))) {
                                         out.println("{\"type\":\"modeconfirm\",\"mode\":1");
                                     } else {
                                         out.println("{\"type\":\"modedeny\",\"error\":\"ES EXISTIERT KEIN SPIEL MIT DIESER UUID\"}");
@@ -122,7 +131,12 @@ public class ClientHandler extends Thread {
                             }
                         }
                     } else { // im spiel
-                        forfeitGame();
+                        if (requestType.equals("forfeit")) {
+                            forfeitGame();
+                        } else if (requestType.equals("move")) {
+
+                        }
+
                     }
 
                 }
@@ -136,8 +150,8 @@ public class ClientHandler extends Thread {
 
     public void queue(PrintWriter out, BufferedReader in) {
         try {
-            while(shouldRun && !gegnerGefunden){
-                if(in.ready()) {
+            while (shouldRun && !gegnerGefunden) {
+                if (in.ready()) {
                     JSONObject req = new JSONObject(in.readLine());
                     if (req.getString("type").equals("leavequeue")) {
                         server.removeFromQueue(this);
@@ -145,7 +159,7 @@ public class ClientHandler extends Thread {
                     }
                 }
             }
-            if(gegnerGefunden && shouldRun){
+            if (gegnerGefunden && shouldRun) {
                 out.println("{\"type\":\"queueready\"}");
 
             }
@@ -164,6 +178,13 @@ public class ClientHandler extends Thread {
     public void giveGame(SchachSpiel schachSpiel) {
         this.game = schachSpiel;
         this.imSpiel = true;
+    }
+
+    public void endGame() {
+        this.game = null;
+        this.imSpiel = false;
+        this.amZug = false;
+        this.spielVorbei = true;
     }
 
     public void requestMove() {

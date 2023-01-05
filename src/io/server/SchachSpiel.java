@@ -1,5 +1,7 @@
 package io.server;
 
+import spiel.feld.Feld;
+
 public class SchachSpiel implements Runnable {
 
     // Elo dingens
@@ -7,8 +9,10 @@ public class SchachSpiel implements Runnable {
 
     private volatile boolean shouldRun;
     private volatile int playerCount;
+    private volatile String move; // muss noch zum Move Objekt gemacht werden
 
     private long uuid;
+    private Feld feld;
     private ClientHandler white;
     private ClientHandler black;
     private boolean isWhiteMove;
@@ -18,6 +22,7 @@ public class SchachSpiel implements Runnable {
         this.uuid = uuid;
         this.isWhiteMove = true;
         this.playerCount = 1;
+        this.move = null;
         if (Math.random() < 0.5) { // wer ist was
             this.white = a;
             this.black = null;
@@ -27,7 +32,7 @@ public class SchachSpiel implements Runnable {
         }
         // threads informieren
         a.giveGame(this);
-        // TODO feld generieren
+        this.feld = new Feld();
         // TODO weiß nach move fragen aka gameloop starten
         Thread gameThread = new Thread(this);
         gameThread.start();
@@ -37,6 +42,7 @@ public class SchachSpiel implements Runnable {
         this.uuid = uuid;
         this.isWhiteMove = true;
         this.playerCount = 2;
+        this.move = null;
         if (Math.random() < 0.5) {
             this.white = a;
             this.black = b;
@@ -58,7 +64,7 @@ public class SchachSpiel implements Runnable {
     }
 
     public synchronized boolean joinGame(ClientHandler client) {
-        if(white != null && black != null){ // spiel schon voll
+        if (white != null && black != null) { // spiel schon voll
             return false;
         } else if (white == null && black == null) { // spieler schon geleavt oder so
             return false;
@@ -72,7 +78,7 @@ public class SchachSpiel implements Runnable {
     }
 
     public synchronized void forfeit(ClientHandler client) {
-        if(client.equals(white)) {
+        if (client.equals(white)) {
             endGame(-1);
         } else if (client.equals(black)) {
             endGame(1);
@@ -84,15 +90,19 @@ public class SchachSpiel implements Runnable {
         while (shouldRun) {
             switch (playerCount) {
                 case 0 -> {
-                    if(false) { // spielvorbei
+                    if (false) { // spielvorbei
                         // spiel abspeichern
                     }
                 }
                 case 1 -> {
-                    if(black == null && !isWhiteMove) {
-                        // schwarz kann ziehen
-                    } else if (white != null && isWhiteMove)  {
-                        // weiß kann ziehen
+                    if (black != null && !isWhiteMove) {
+                        black.requestMove();
+                        awaitMove();
+                    } else if (white != null && isWhiteMove) {
+                        white.requestMove();
+                        awaitMove();
+                    } else {
+
                     }
                 }
                 case 2 -> {
@@ -101,9 +111,32 @@ public class SchachSpiel implements Runnable {
                     } else {
                         black.requestMove();
                     }
+                    awaitMove();
                 }
             }
         }
+    }
+
+    public void awaitMove() {
+        while (shouldRun && move == null) {
+            try {
+                Thread.sleep(10);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        if (move != null) {
+            feld.move(null, null);
+        }
+        if (!shouldRun) {
+            // TODO
+        }
+
+        this.move = null;
+    }
+
+    public synchronized void setMove(String move) {
+        this.move = move;
     }
 
     public void move() {
@@ -120,6 +153,7 @@ public class SchachSpiel implements Runnable {
     }
 
     private void endGame(int endCode) { // -1 Schwarz gewonnen, 0 Unentschieden, 1 Weiss gewonnen
+        // --------------------- Elo ---------------------
         double weissPunkte = (endCode + 1d) / 2d;
         double ratingWeiss = white.getElo();
         double ratingSchwarz = black.getElo();

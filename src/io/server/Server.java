@@ -196,8 +196,21 @@ public class Server implements Runnable {
 
     public synchronized void waitingPrivate(ClientHandler client) {
         Logger.log("server", "Erstelle Schachlobby");
-
         this.waitingPrivate.add(new SchachSpiel(generateGameUUID(), client));
+    }
+
+    public synchronized void createPrivate(ClientHandler client, long uuid) {
+        // TODO hier muss sichergestellt werden, dass diese uuid nicht schon vorhanden ist, beziehungsweise eine Liste mit nicht verfügbaren uuids haben, sodass diese uuid nicht weiter vergeben wird.
+        this.waitingPrivate.add(new SchachSpiel(uuid, client));
+    }
+
+    public synchronized boolean checkIfExists(long uuid) {
+        for (SchachSpiel game : schachSpiels) {
+            if (game.getUUID() == uuid) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void stoppe() {

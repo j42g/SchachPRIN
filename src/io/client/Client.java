@@ -13,7 +13,7 @@ import java.util.Scanner;
 public class Client implements Runnable {
 
     private final String[] alleSpielmodi = new String[]{"RANDOM GEGNER", "PRIVATES SPIEL ERSTELLEN", "PRIVATEM SPIEL BEITRETEN"};
-    private final String[] alleBefehle = new String[]{"VERBINDEN", "EXIT", "TRENNEN", "ANMELDEN", "REGISTRIEREN", "ABMELDEN", "EXIT", "SPIELMODI", "AUFGEBEN", "VERLASSEN"};
+    private final String[] alleBefehle = new String[]{"VERBINDEN", "EXIT", "TRENNEN", "ANMELDEN", "REGISTRIEREN", "ABMELDEN", "EXIT", "SPIELMODI", "ZUG", "AUFGEBEN", "VERLASSEN"};
 
     private Verbinder v;
 
@@ -21,7 +21,6 @@ public class Client implements Runnable {
     private boolean eingeloggt;
     private boolean imSpiel;
     private boolean amZug;
-    private boolean spielVorbei;
 
     public Client() {
         this.v = null;
@@ -29,7 +28,6 @@ public class Client implements Runnable {
         this.eingeloggt = false;
         this.imSpiel = false;
         this.amZug = false;
-        this.spielVorbei = false;
     }
 
     @Override
@@ -78,17 +76,12 @@ public class Client implements Runnable {
                             rangliste();
                         }
                     } else { // IM SPIEL
-                        if (spielVorbei) {
-                            if (input.equals("SPIELMODI")) {
-                                spielmodiAuswahl();
-                            }
-                        } else { // nicht vorbei
-                            if (input.equals("AUFGEBEN")) {
-                                v.sendeJSON(new JSONObject("{\"type\":\"forfeit\"}"));
-                            }
+                        if (input.equals("AUFGEBEN")) {
+                            v.sendeJSON(new JSONObject("{\"type\":\"forfeit\"}"));
+                        } else if (input.equals("ZUG")) {
                             if (amZug) {
-                                // TODO
-                            } else { // nicht am Zug
+                                ziehen();
+                            } else {
                                 System.out.println("SIE SIND NICHT AM ZUG");
                             }
                         }
@@ -113,14 +106,10 @@ public class Client implements Runnable {
                         verfuegbareBefehle.add("SPIELREGELN");
                         verfuegbareBefehle.add("RANGLISTE");
                     } else { // IM SPIEL
-                        if (spielVorbei) {
-                            verfuegbareBefehle.add("SPIELMODI");
-                        } else { // nicht vorbei
-                            verfuegbareBefehle.add("VERLASSEN");
-                            verfuegbareBefehle.add("AUFGEBEN");
-                            if (amZug) {
-                                verfuegbareBefehle.add("[ZUG]");
-                            }
+                        verfuegbareBefehle.add("VERLASSEN");
+                        verfuegbareBefehle.add("AUFGEBEN");
+                        if (amZug) {
+                            verfuegbareBefehle.add("[ZUG]");
                         }
                     }
                 }
@@ -291,9 +280,9 @@ public class Client implements Runnable {
             }
         }
         // mode-abhängige Daten
-        if(modi == 2){ // uuid, des spiels, dem man beitreten will
+        if (modi == 2) { // uuid, des spiels, dem man beitreten will
             long uuid;
-            while(true){
+            while (true) {
                 input = s.nextLine();
                 if (input.equalsIgnoreCase("ABBRECHEN")) {
                     System.out.println("VORGANG ABGEBROCHEN");
@@ -312,25 +301,24 @@ public class Client implements Runnable {
         }
 
         JSONObject antwort = serverInput();
-        if(antwort.getString("type").equals("modeconfirm")){
-            if(antwort.getInt("mode") == modi){
+        if (antwort.getString("type").equals("modeconfirm")) {
+            if (antwort.getInt("mode") == modi) {
                 System.out.println("AUSWAHL ERFOLGT");
             } else {
                 System.out.println("FEHLER BEI DER BESTÄTIGUNG DER AUSWAHL");
                 return;
             }
-        } else if (antwort.getString("type").equals("modedeny")){
+        } else if (antwort.getString("type").equals("modedeny")) {
             System.out.println("FEHLER BEI DER AUSWAHL. FEHLER: " + antwort.getString("error"));
             return;
-        }else {
+        } else {
             System.out.println("FEHLER BEIM PROTOKOLL");
         }
 
-        if(modi == 0){
-            if(antwort.getBoolean("ready")){
+        if (modi == 0) {
+            if (antwort.getBoolean("ready")) {
                 System.out.println("GEGNER GEFUNDEN. SPIEL STARTET");
                 this.imSpiel = true;
-                this.spielVorbei = false;
             } else {
                 System.out.println("QUEUE BEIGETRETEN");
                 queue();
@@ -338,10 +326,8 @@ public class Client implements Runnable {
         } else if (modi == 1) {
             System.out.println("LOBBY ERSTELLT. UUID=" + antwort.getLong("uuid") + ". GEBEN SIE DIESE UUID EINEM FREUND, DER IHNEN DANN BEITRETEN KANN");
             this.imSpiel = true;
-            this.spielVorbei = false;
         } else if (modi == 2) {
             this.imSpiel = true;
-            this.spielVorbei = false;
             System.out.println("LOBBY BEIGETRETEN");
         }
 
@@ -355,7 +341,7 @@ public class Client implements Runnable {
         QueueNotifier qn = new QueueNotifier();
         Thread qnThread = new Thread(qn);
         qnThread.start();
-        while(!v.queueReady()) {
+        while (!v.queueReady()) {
             input = s.nextLine().toUpperCase();
             if (input.equals("VERLASSEN")) {
                 v.sendeJSON(new JSONObject("{\"type\":\"leavequeue\"}"));
@@ -378,9 +364,13 @@ public class Client implements Runnable {
         qn.stoppe();
     }
 
+    private void ziehen() {
+
+    }
+
     private JSONObject serverInput() {
         JSONObject res = v.warteAufJSON();
-        if(res.getString("type").equals("{\"type\":\"serverclose\"}")){
+        if (res.getString("type").equals("{\"type\":\"serverclose\"}")) {
             System.out.println("SERVER SCHLIEßT");
             System.exit(0);
         }
