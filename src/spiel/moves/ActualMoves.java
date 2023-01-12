@@ -1,6 +1,7 @@
 package spiel.moves;
 
 import spiel.feld.Feld;
+import spiel.figur.Koenig;
 
 import java.util.ArrayList;
 
@@ -13,8 +14,11 @@ public class ActualMoves {
 
     }
 
-
     public ArrayList<AbsPosition> computeMoves(AbsPosition pos) {
+        return computeMovesBack(pos, false);
+    }
+
+    public ArrayList<AbsPosition> computeMovesBack(AbsPosition pos, boolean recursion) {
         MovePattern pattern = feld.getFigAtPos(pos).getMoveSet();
         ArrayList<AbsPosition> res = new ArrayList<AbsPosition>();
         for (Move box : pattern.getMovePattern()) {
@@ -43,12 +47,26 @@ public class ActualMoves {
             }
 
         }
+
         int i = 0;
         while (i != res.size()) {
             if (res.get(i).isPossible()) {
                 i++;
             } else {
                 res.remove(i);
+            }
+        }
+        if (!recursion) {
+            if (feld.getFigAtPos(pos) instanceof Koenig) {
+                ArrayList<AbsPosition> enemyPos = feld.getAllPossibleMoves(-feld.getFigAtPos(pos).getFarbe());
+                i = 0;
+                while (i != res.size()) {
+                    if (enemyPos.contains(res.get(i))) {
+                        res.remove(res.get(i));
+                    } else {
+                        i++;
+                    }
+                }
             }
         }
         return res;

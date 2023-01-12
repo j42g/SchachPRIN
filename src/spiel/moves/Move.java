@@ -16,10 +16,11 @@ public class Move {
         this(xOffset,yOffset);
         this.blockable = blockable;
     }
-    public Move(int xOffset, int yOffset, boolean blockable, boolean onlyKill){
+    public Move(int xOffset, int yOffset, boolean blockable, boolean bauerMove){
         this(xOffset, yOffset, blockable);
-        this.bauerMove = onlyKill;
+        this.bauerMove = bauerMove;
     }
+
 
     public int getxOffset() {
         return xOffset;

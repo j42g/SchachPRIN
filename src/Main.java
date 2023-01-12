@@ -1,15 +1,16 @@
 import io.client.Client;
 import io.server.ServerVerwaltung;
+import spiel.Gamehandler;
 import spiel.feld.*;
 import spiel.moves.AbsPosition;
 import spiel.moves.ActualMoves;
+import spiel.moves.Move;
 
 public class Main {
 
     public static void main(String[] args) {
         Feld a = new Feld();
-        ActualMoves b = new ActualMoves(a);
-        System.out.println(b.computeMoves(new AbsPosition(6,0)));
-    }
+        System.out.println(a.toFenNot());
 
+    }
 }

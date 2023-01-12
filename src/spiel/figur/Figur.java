@@ -19,4 +19,8 @@ public abstract class Figur {
         return moveSet;
     }
 
+    public abstract void moved();
+
+    public abstract boolean getHasMoved();
+
 }

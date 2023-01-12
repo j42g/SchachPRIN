@@ -50,4 +50,13 @@ public class AbsPosition {
 
         return AbcPos + " " + NPos;
     }
+    public boolean equals(Object o){
+        if(o instanceof AbsPosition){
+            AbsPosition a = (AbsPosition) o;
+            if(a.getX() == this.x && a.getY() == this.y){
+                return true;
+            }
+        }
+        return false;
+    }
 }

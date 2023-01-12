@@ -15,6 +15,17 @@ public class Springer extends Figur {
         moveSet.addMove(-2,1);
         moveSet.addMove(-2,-1);
     }
+
+    @Override
+    public void moved() {
+
+    }
+
+    @Override
+    public boolean getHasMoved() {
+        return false;
+    }
+
     public String toString() {
         return "S";
         /*

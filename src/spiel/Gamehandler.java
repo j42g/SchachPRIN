@@ -1,27 +1,55 @@
 package spiel;
+
 import spiel.feld.Feld;
+import spiel.moves.AbsPosition;
+import spiel.moves.Move;
 
 import java.util.Scanner;
+
 public class Gamehandler {
-    public boolean playerturn;
+    public int playerturn;
     Scanner s = new Scanner(System.in);
 
-    public Gamehandler(){
-        this.playerturn = true;
-        Feld a = new Feld();
+    Feld feld;
+
+    public Gamehandler() {
+        this.playerturn = 1;
+        feld = new Feld();
         gameLogic();
     }
-    public void gameLogic(){
 
 
+
+    public AbsPosition convertAbs(String a) {
+        String[] res = a.split(" ");
+        return new AbsPosition(Integer.parseInt(res[0]), Integer.parseInt(res[1]));
     }
-    public int[][] acceptMove(){
-        int[][] res;
-        System.out.println("X Koordinate der angewählten Figur?");
-        int x = s.nextInt();
-        System.out.println("Y Koordinate der angewählten Figur?");
-        int y = s.nextInt();
 
-        return new int[0][0];
+    public Move convertMov(String a) {
+        String[] res = a.split(" ");
+        return new Move(Integer.parseInt(res[0]), Integer.parseInt(res[1]));
+    }
+
+    public void gameLogic() {
+        while (feld.getAllPossibleMoves(playerturn).size() != 0) {
+            System.out.println(feld);
+            String temp = "";
+            System.out.print("pos of Figure: ");
+            temp = s.nextLine();
+            AbsPosition pos = convertAbs(temp);
+            if(feld.getFigAtPos(pos)==null){
+                System.out.println("No figure there");
+                continue;
+            }
+            System.out.println();
+            System.out.print("move offset: ");
+            temp = s.nextLine();
+            System.out.println();
+            Move mov = convertMov(temp);
+
+            feld.move(pos,mov);
+
+            playerturn = -playerturn;
+        }
     }
 }

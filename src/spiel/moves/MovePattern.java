@@ -22,6 +22,9 @@ public class MovePattern {
     public void addRayMove(int x, int y){
         moves.add(new Move(x,y,true));
     }
+    public void addBauerMove(int x, int y){
+        moves.add(new Move(x,y,false,true));
+    }
     public ArrayList<Move> getMovePattern(){
         return moves;
     }

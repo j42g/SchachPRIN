@@ -139,7 +139,7 @@ public class SchachSpiel implements Runnable {
             }
         }
         if (move != null) {
-            feld.move(null, null);
+            //feld.move(null, null);
         }
         if (!shouldRun) {
             // TODO
