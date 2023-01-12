@@ -215,6 +215,7 @@ public class Server implements Runnable {
 
     public void stoppe() {
         this.shouldRun = false;
+        bm.abspeichern();
         for (ClientHandler thread : threads) {
             Logger.log("server", "Stoppe Client-Handler-" + thread.getUUID());
             thread.stoppe();
