@@ -70,17 +70,22 @@ public class Verbinder {
 
     public boolean queueReady() {
         try {
-            if(!in.ready()){
-                return false;
-            } else {
-                return true;
-            }
+            return in.ready();
         } catch (Exception ex) {
             ex.printStackTrace();
             System.out.println("Fehler in der Queue");
             return false;
         }
+    }
 
+    public boolean hasMove() {
+        try {
+            return in.ready();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.out.println("Fehler beim Zug warten");
+            return false;
+        }
     }
 
 }

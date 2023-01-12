@@ -1,5 +1,6 @@
 package io.server;
 
+import io.Logger;
 import spiel.feld.Feld;
 
 public class SchachSpiel implements Runnable {
@@ -91,7 +92,6 @@ public class SchachSpiel implements Runnable {
             switch (playerCount) {
                 case 0 -> {
                     if (false) { // spielvorbei
-                        // spiel abspeichern
                     }
                 }
                 case 1 -> {
@@ -114,6 +114,19 @@ public class SchachSpiel implements Runnable {
                     awaitMove();
                 }
             }
+        }
+    }
+
+    public synchronized void leaveGame(ClientHandler client) {
+        if(client == white || client == black){
+            playerCount--;
+            if (white == client) {
+                white = null;
+            } else {
+                black = null;
+            }
+        } else {
+            Logger.log("SchachSpiel-" + this.uuid, "Client-Handle-" + client.getUUID() + " ist nicht in diesem Spiel");
         }
     }
 
@@ -150,6 +163,12 @@ public class SchachSpiel implements Runnable {
 
     public long getUUID() {
         return this.uuid;
+    }
+
+    public String getFen() {
+        // this.feld.getFen();
+        // TODO
+        return "";
     }
 
     private void endGame(int endCode) { // -1 Schwarz gewonnen, 0 Unentschieden, 1 Weiss gewonnen

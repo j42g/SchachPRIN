@@ -2,6 +2,7 @@ package io.client;
 
 import io.Logger;
 import org.json.JSONObject;
+import spiel.feld.Feld;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -16,11 +17,12 @@ public class Client implements Runnable {
     private final String[] alleBefehle = new String[]{"VERBINDEN", "EXIT", "TRENNEN", "ANMELDEN", "REGISTRIEREN", "ABMELDEN", "EXIT", "SPIELMODI", "ZUG", "AUFGEBEN", "VERLASSEN"};
 
     private Verbinder v;
+    private Feld feld;
 
     private boolean verbunden;
     private boolean eingeloggt;
     private boolean imSpiel;
-    private boolean amZug;
+    private volatile boolean amZug;
 
     public Client() {
         this.v = null;
@@ -249,10 +251,6 @@ public class Client implements Runnable {
         }
     }
 
-    private void rangliste() {
-        // TODO
-    }
-
     private void spielmodiAuswahl() {
         Scanner s = new Scanner(System.in);
         String input;
@@ -318,20 +316,24 @@ public class Client implements Runnable {
         if (modi == 0) {
             if (antwort.getBoolean("ready")) {
                 System.out.println("GEGNER GEFUNDEN. SPIEL STARTET");
-                this.imSpiel = true;
+                starteSpiel();
             } else {
                 System.out.println("QUEUE BEIGETRETEN");
                 queue();
             }
         } else if (modi == 1) {
             System.out.println("LOBBY ERSTELLT. UUID=" + antwort.getLong("uuid") + ". GEBEN SIE DIESE UUID EINEM FREUND, DER IHNEN DANN BEITRETEN KANN");
-            this.imSpiel = true;
+            starteSpiel();
         } else if (modi == 2) {
-            this.imSpiel = true;
+            starteSpiel();
             System.out.println("LOBBY BEIGETRETEN");
         }
 
 
+    }
+
+    private void rangliste() {
+        // TODO
     }
 
     private void queue() {
@@ -351,7 +353,7 @@ public class Client implements Runnable {
                 if (v.queueReady()) {
                     JSONObject antwort = v.warteAufJSON();
                     if (antwort.getString("type").equals("queueready")) {
-                        this.imSpiel = true;
+                        starteSpiel();
                         return;
                     } else {
                         System.out.println("FEHLER IM PROTOKOLL");
@@ -362,6 +364,24 @@ public class Client implements Runnable {
             }
         }
         qn.stoppe();
+    }
+
+    private void starteSpiel() {
+        this.imSpiel = true;
+        JSONObject fen = v.warteAufJSON();
+        if (fen.getString("type").equals("fengame")) {
+            this.feld = new Feld(fen.getString("fen"));
+        } else {
+            Logger.log("Client", "Messagetype ist nicht fengame. Fehler im Protokoll");
+            System.out.println("Fehler im Protokoll");
+        }
+        MoveListener ml = new MoveListener(this, v);
+        Thread mlThread = new Thread(ml);
+        mlThread.start();
+    }
+
+    public void amZug() {
+        this.amZug = true;
     }
 
     private void ziehen() {

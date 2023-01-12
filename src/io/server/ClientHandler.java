@@ -63,6 +63,7 @@ public class ClientHandler extends Thread {
                         Logger.log("client-handler-" + this.UUID, "Nachricht vom Type \"" + requestType + "\" empfangen");
                         if (requestType.equals("terminate")) {
                             terminate();
+                            return;
                         }
                     }
                 } catch (Exception e) {
@@ -121,20 +122,22 @@ public class ClientHandler extends Thread {
                             case 0 -> { // random game
                                 if (server.lookingForOpponent(this)) { // gegner verfügbar
                                     out.println("{\"type\":\"modeconfirm\",\"mode\":0,\"ready\":true}");
-                                    this.imSpiel = true;
+                                    starteSpiel();
                                 } else { // muss warten
                                     out.println("{\"type\":\"modeconfirm\",\"mode\":0,\"ready\":false}");
                                     queue(out, in);
+                                    starteSpiel();
                                 }
                             }
                             case 1 -> { // private lobby erstellt
                                 server.waitingPrivate(this);
                                 out.println(String.format("{\"type\":\"modeconfirm\",\"mode\":1,\"uuid\":%d}", this.game.getUUID()));
-                                this.imSpiel = true;
+                                starteSpiel();
                             }
                             case 2 -> { // privater lobby beitreten
                                 if (server.joinPrivate(this, request.getLong("uuid"))) {
                                     out.println("{\"type\":\"modeconfirm\",\"mode\":1");
+                                    starteSpiel();
                                 } else {
                                     out.println("{\"type\":\"modedeny\",\"error\":\"ES EXISTIERT KEIN SPIEL MIT DIESER UUID\"}");
                                 }
@@ -144,13 +147,13 @@ public class ClientHandler extends Thread {
                 } else { // im spiel
                     if (requestType.equals("forfeit")) {
                         forfeitGame();
-                    } else if (requestType.equals("move")) {
-                        if (amZug) {
+                    }
+                    if (amZug) {
+                        if (requestType.equals("move")) {
                             // TODO parse json move into correct move
                             game.move(null); // hier soll ein Move Objekt rein
                         }
                     }
-
                 }
 
             }
@@ -170,7 +173,6 @@ public class ClientHandler extends Thread {
             }
             if (gegnerGefunden && shouldRun) {
                 out.println("{\"type\":\"queueready\"}");
-
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -187,6 +189,11 @@ public class ClientHandler extends Thread {
     public void giveGame(SchachSpiel schachSpiel) {
         this.game = schachSpiel;
         this.imSpiel = true;
+    }
+
+    public void starteSpiel() {
+        this.imSpiel = true;
+        out.println("{\"type\":\"fen\",\"fen\":\"" + game.getFen() + "\"}");
     }
 
     public void endGame() {
@@ -222,7 +229,11 @@ public class ClientHandler extends Thread {
     }
 
     public void terminate() { // diese funktion heißt client schließt die Verbindung
+        this.game.leaveGame(this);
         this.shouldRun = false;
+        if (imSpiel) {
+            this.benutzer.setUuidOffenesSpiel(this.game.getUUID());
+        }
         // TODO implementieren
     }
 

@@ -37,6 +37,10 @@ public class Feld {
         }
     }
 
+    public Feld(String fen){
+        // TODO
+    }
+
     public Figur getFigAtPos(AbsPosition pos){
         return feld[pos.getX()][pos.getY()].getFigur();
     }
