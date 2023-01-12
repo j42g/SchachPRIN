@@ -139,8 +139,8 @@ public class SchachSpiel implements Runnable {
         this.move = move;
     }
 
-    public void move() {
-
+    public void move(Number a) { // Move Objekt
+        this.feld.move(null, null); // Moveobject
     }
 
 
