@@ -2,16 +2,14 @@ package spiel.figur;
 
 public class Laeufer extends Figur {
 
-    int[][] moveset;
+
 
     public Laeufer(int farbe) {
         super(farbe);
-        int[][][] result = new int[4][7][2];
-        result[0][0]=new int[]{1,1};
-        result[1][0]=new int[]{1,-1};
-        result[2][0]=new int[]{-1,-1};
-        result[3][0]=new int[]{-1,1};
-        moveset=breakDown(axis(result));
+        moveSet.addRayMove(1,1);
+        moveSet.addRayMove(1,-1);
+        moveSet.addRayMove(-1,1);
+        moveSet.addRayMove(-1,-1);
     }
 
     public String toString() {
@@ -25,9 +23,4 @@ public class Laeufer extends Figur {
 
          */
     }
-    @Override
-    public int[][] getOffsets() {
-        return moveset;
-    }
-
 }
