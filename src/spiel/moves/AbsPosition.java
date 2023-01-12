@@ -25,6 +25,29 @@ public class AbsPosition {
         return y;
     }
     public String toString(){
-        return x+" "+y;
+        String AbcPos = "";
+        String NPos = "";
+        switch (x){
+            case 0: AbcPos = "A";
+            case 1: AbcPos = "B";
+            case 2: AbcPos = "C";
+            case 3: AbcPos = "D";
+            case 4: AbcPos = "E";
+            case 5: AbcPos = "F";
+            case 6: AbcPos = "G";
+            case 7: AbcPos = "H";
+        }
+        switch (y){
+            case 0: NPos = "1";
+            case 1: NPos = "2";
+            case 2: NPos = "3";
+            case 3: NPos = "4";
+            case 4: NPos = "5";
+            case 5: NPos = "6";
+            case 6: NPos = "7";
+            case 7: NPos = "8";
+        }
+
+        return AbcPos + " " + NPos;
     }
 }
