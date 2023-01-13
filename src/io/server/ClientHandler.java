@@ -1,7 +1,8 @@
 package io.server;
 
 import io.Logger;
-import io.server.benutzerverwalktung.Benutzer;
+import io.server.benutzerverwaltung.Benutzer;
+import io.server.spiel.SchachSpiel;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;

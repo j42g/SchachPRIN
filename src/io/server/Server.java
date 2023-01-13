@@ -1,8 +1,9 @@
 package io.server;
 
 import io.Logger;
-import io.server.benutzerverwalktung.Benutzer;
-import io.server.benutzerverwalktung.BenutzerManager;
+import io.server.benutzerverwaltung.Benutzer;
+import io.server.benutzerverwaltung.BenutzerManager;
+import io.server.spiel.SchachSpiel;
 import org.json.JSONObject;
 
 import java.net.ServerSocket;
@@ -17,8 +18,7 @@ public class Server implements Runnable {
 
     private volatile boolean shouldRun;
 
-    private final BenutzerManager bm = new BenutzerManager(ServerVerwaltung.filename);
-    ;
+    private final BenutzerManager bm;
     private final ArrayList<ClientHandler> threads;
     private ClientHandler waitingClient; // random game queue
     private final ArrayList<SchachSpiel> waitingPrivate;
@@ -30,6 +30,8 @@ public class Server implements Runnable {
         this.waitingClient = null;
         this.waitingPrivate = new ArrayList<SchachSpiel>();
         this.schachSpiels = new ArrayList<SchachSpiel>();
+        this.bm = new BenutzerManager(ServerVerwaltung.filename);
+        // Spiele laden
     }
 
     public static Server getServer() {

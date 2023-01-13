@@ -1,4 +1,4 @@
-package io.server.benutzerverwalktung;
+package io.server.benutzerverwaltung;
 
 import org.json.JSONObject;
 
