@@ -1,5 +1,7 @@
 package io.server.spiel;
 
+import org.json.JSONObject;
+
 public class Spiel {
 
     private final String white;
@@ -14,5 +16,35 @@ public class Spiel {
         this.fen = fen;
     }
 
+    public Spiel(JSONObject json) {
+        this.white = json.getString("white");
+        this.black = json.getString("black");
+        this.uuid = json.getLong("uuid");
+        this.fen = json.getString("fen");
+    }
 
+    public JSONObject toJSONObject() {
+        JSONObject benutzer = new JSONObject();
+        benutzer.put("white", this.white);
+        benutzer.put("black", this.black);
+        benutzer.put("uuid", this.uuid);
+        benutzer.put("fen", this.fen);
+        return benutzer;
+    }
+
+    public String getWhite() {
+        return white;
+    }
+
+    public String getBlack() {
+        return black;
+    }
+
+    public long getUuid() {
+        return uuid;
+    }
+
+    public String getFen() {
+        return fen;
+    }
 }
