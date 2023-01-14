@@ -1,6 +1,7 @@
-package io.server;
+package io.server.spiel;
 
 import io.Logger;
+import io.server.ClientHandler;
 import spiel.feld.Feld;
 
 public class SchachSpiel implements Runnable {
