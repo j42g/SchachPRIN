@@ -1,6 +1,7 @@
 package spiel.moves;
 
 import spiel.feld.Feld;
+import spiel.figur.Bauer;
 import spiel.figur.Koenig;
 
 import java.util.ArrayList;
@@ -18,16 +19,19 @@ public class ActualMoves {
     }
 
     public ArrayList<AbsPosition> computeMovesBack(AbsPosition pos, boolean recursion) {
-        if(feld.getFigAtPos(pos)==null){
+        if (feld.getFigAtPos(pos) == null) {
             System.out.println("no figure at requested position, computeMovesBack() error");
             return new ArrayList<AbsPosition>();
         }
         MovePattern pattern = feld.getFigAtPos(pos).getMoveSet();
-        if(feld.getFigAtPos(pos) instanceof Koenig && recursion){
-            if(feld.queenSideCastlePossible(feld.getFigAtPos(pos).getFarbe())){
-                pattern.addMove(-2,0);
-            } else if(feld.kingSideCastlePossible(feld.getFigAtPos(pos).getFarbe())){
-                pattern.addMove(2,0);
+        if (feld.getFigAtPos(pos) instanceof Bauer) {
+
+        }
+        if (feld.getFigAtPos(pos) instanceof Koenig && recursion) {
+            if (feld.queenSideCastlePossible(feld.getFigAtPos(pos).getFarbe())) {
+                pattern.addMove(-2, 0);
+            } else if (feld.kingSideCastlePossible(feld.getFigAtPos(pos).getFarbe())) {
+                pattern.addMove(2, 0);
             }
         }
         ArrayList<AbsPosition> res = new ArrayList<AbsPosition>();
@@ -57,6 +61,7 @@ public class ActualMoves {
             }
 
         }
+
         int i = 0;
         while (i != res.size()) {
             if (res.get(i).isPossible()) {
@@ -78,6 +83,7 @@ public class ActualMoves {
                 }
             }
         }
+
         return res;
     }
 }

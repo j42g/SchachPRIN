@@ -12,6 +12,8 @@ public class Feld {
     private ActualMoves checker = new ActualMoves(this);
     public static final int WEISS = 1;
     public static final int SCHWARZ = -1;
+
+    public int playerTurn;
     private MoveRecord moveRecord;
 
     public Feld(Feld feld) {
@@ -22,6 +24,7 @@ public class Feld {
     }
 
     public Feld() {
+        playerTurn = 1;
         moveRecord = new MoveRecord();
         feld = new Quadrat[8][8];
         for (int y = 0; y < 8; y++) {
@@ -161,7 +164,7 @@ public class Feld {
         move(a, new AbsPosition(a.getX() - b.getX(), a.getY() - b.getY()));
     }
 
-    public void move(AbsPosition a, Move b) {
+    public boolean move(AbsPosition a, Move b) {
         ArrayList<AbsPosition> temp = checker.computeMoves(a);
         if(getFigAtPos(a) instanceof Koenig && Math.abs(b.getxOffset())==2){
             int color = 1;
@@ -176,6 +179,8 @@ public class Feld {
                     getFigAtPos(a.addMove(b)).moved();
                     setFigAtPos(a.addMove(new Move(b.getxOffset()/2,0)),getFigAtPos(new AbsPosition(rookXPos,a.getY())));
                     setFigAtPos(new AbsPosition(rookXPos,a.getY()),null);
+                    playerTurn = -playerTurn;
+                    return true;
                 }
             } else {
                 if (queenSideCastlePossible(color)){
@@ -185,18 +190,20 @@ public class Feld {
                     getFigAtPos(a.addMove(b)).moved();
                     setFigAtPos(a.addMove(new Move(b.getxOffset()/2,0)),getFigAtPos(new AbsPosition(rookXPos,a.getY())));
                     setFigAtPos(new AbsPosition(rookXPos,a.getY()),null);
+                    playerTurn = -playerTurn;
+                    return true;
                 }
             }
-
-
-
         } else {
             if (temp.contains(a.addMove(b))) {
                 setFigAtPos(a.addMove(b), getFigAtPos(a));
                 setFigAtPos(a, null);
                 getFigAtPos(a.addMove(b)).moved();
+                playerTurn = -playerTurn;
+                return true;
             }
         }
+        return false;
     }
 
     public MoveRecord getMoveRecord() {
