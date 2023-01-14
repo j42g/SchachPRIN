@@ -43,6 +43,7 @@ public class Feld {
         }
     }
 
+
     public String toFenNot() {
         int temp = 0;
         String res = "";
