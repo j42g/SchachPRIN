@@ -385,6 +385,22 @@ public class Client implements Runnable {
     }
 
     private void ziehen() {
+        Logger.log("client", "Starte Zuginput");
+        Scanner s = new Scanner(System.in);
+        String move;
+        while (true) {
+            System.out.println("Geben sie einen Zug ein (long algebraic notation): ");
+            move = s.nextLine();
+            boolean isValid = false;
+            // TODO feld.checkIfValid(Move.parseMove(input))
+            if (isValid) {
+                // TODO feld.move(Move.parseMove(input))
+                break;
+            } else {
+                System.out.println("Zugformat inkorrekt. (Ursprungsfeld)(Zielfeld)(opt. Promotionsfigur). Bsp: e2e4, f7f8q");
+            }
+        }
+        v.sendeJSON(new JSONObject("{\"type\":\"move\",\"move\":\"" + move + "\"}"));
 
     }
 
