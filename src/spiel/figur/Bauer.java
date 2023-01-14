@@ -5,13 +5,18 @@ public class Bauer extends Figur {
 
     public Bauer(int farbe) {
         super(farbe);
-        //moveSet.
+        moveSet.addBauerMove(1,farbe);
+        moveSet.addBauerMove(-1,farbe);
+        moveSet.addBauerMove(0,farbe);
+        moveSet.addBauerMove(0,farbe*2);
     }
 
     @Override
     public void moved() {
-        hasMoved = true;
-        //moveSet.
+        if(!hasMoved) {
+            hasMoved = true;
+            moveSet.getMovePattern().remove(3);
+        }
     }
     @Override
     public boolean getHasMoved() {
