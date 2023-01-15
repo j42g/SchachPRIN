@@ -14,10 +14,21 @@ public class Feld {
     public static final int SCHWARZ = -1;
 
     public int playerTurn;
-    private MoveRecord moveRecord;
+    private ArrayList<FullMove> moveRecord;
+    public boolean fiftyMoveRule;
+
+    public Feld(Quadrat[][] feld) {
+        this.feld = feld;
+    }
 
     public Feld(Feld feld) {
-        this.feld = feld.feld;
+        Quadrat[][] temp = new Quadrat[8][8];
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; y < 8; y++) {
+                temp[x][y] = feld.feld[x][y];
+            }
+        }
+        this.feld = temp;
         this.systemmessage = feld.systemmessage;
         this.checker = feld.checker;
         this.moveRecord = feld.getMoveRecord();
@@ -25,25 +36,30 @@ public class Feld {
 
     public Feld() {
         playerTurn = 1;
-        moveRecord = new MoveRecord();
+        moveRecord = new ArrayList<FullMove>();
         feld = new Quadrat[8][8];
         for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
                 feld[x][y] = new Quadrat();
             }
-        }
+        }/*
         Figur[] reihenfolgeW = new Figur[]{new Turm(WEISS), new Springer(WEISS), new Laeufer(WEISS), new Dame(WEISS), new Koenig(WEISS), new Laeufer(WEISS), new Springer(WEISS), new Turm(WEISS)};
         //Figur[] reihenfolgeW = new Figur[]{new Turm(WEISS), null, null, null, new Koenig(WEISS), new Laeufer(WEISS), new Springer(WEISS), new Turm(WEISS)}; //queencastle setup
         Figur[] reihenfolgeS = new Figur[]{new Turm(SCHWARZ), new Springer(SCHWARZ), new Laeufer(SCHWARZ), new Dame(SCHWARZ), new Koenig(SCHWARZ), new Laeufer(SCHWARZ), new Springer(SCHWARZ), new Turm(SCHWARZ)};
         for (int x = 0; x < 8; x++) { // schwarz
             feld[x][7] = new Quadrat(reihenfolgeS[x]);
-            feld[x][6] = new Quadrat(new Bauer(SCHWARZ));
+            //feld[x][6] = new Quadrat(new Bauer(SCHWARZ));
         }
 
         for (int x = 0; x < 8; x++) { // weiß
-            feld[x][1] = new Quadrat(new Bauer(WEISS));
+            //feld[x][1] = new Quadrat(new Bauer(WEISS));
             feld[x][0] = new Quadrat(reihenfolgeW[x]);
         }
+        */
+        feld[7][7] = new Quadrat(new Koenig(SCHWARZ));
+        feld[7][6] = new Quadrat(new Laeufer(SCHWARZ));
+        feld[7][5] = new Quadrat(new Koenig(WEISS));
+
     }
 
 
@@ -137,9 +153,9 @@ public class Feld {
         return res;
     }
 
-    public Feld(MoveRecord a) {
+    public Feld(ArrayList<FullMove> a) {
         this();
-        for (FullMove box : a.getMoves()) {
+        for (FullMove box : a) {
             move(box);
         }
     }
@@ -165,28 +181,33 @@ public class Feld {
     }
 
     public boolean move(AbsPosition a, Move b) {
-        if(isValidMove(new FullMove(a,b))) {
+        System.out.println(isValidMove(new FullMove(a, b, this)));
+        if (isValidMove(new FullMove(a, b, this))) {
             if (getFigAtPos(a) instanceof Koenig && Math.abs(b.getxOffset()) == 2) {
                 if (b.getxOffset() > 0) {
-                        int rookXPos = 7;
-                        setFigAtPos(a.addMove(b), getFigAtPos(a));
-                        setFigAtPos(a, null);
-                        getFigAtPos(a.addMove(b)).moved();
-                        setFigAtPos(a.addMove(new Move(b.getxOffset() / 2, 0)), getFigAtPos(new AbsPosition(rookXPos, a.getY())));
-                        setFigAtPos(new AbsPosition(rookXPos, a.getY()), null);
-                        playerTurn = -playerTurn;
-                        return true;
+                    int rookXPos = 7;
+                    moveRecord.add(new FullMove(a, b, this));
+                    setFigAtPos(a.addMove(b), getFigAtPos(a));
+                    setFigAtPos(a, null);
+                    getFigAtPos(a.addMove(b)).moved();
+                    setFigAtPos(a.addMove(new Move(b.getxOffset() / 2, 0)), getFigAtPos(new AbsPosition(rookXPos, a.getY())));
+                    setFigAtPos(new AbsPosition(rookXPos, a.getY()), null);
+                    playerTurn = -playerTurn;
+                    return true;
                 } else {
-                        int rookXPos = 0;
-                        setFigAtPos(a.addMove(b), getFigAtPos(a));
-                        setFigAtPos(a, null);
-                        getFigAtPos(a.addMove(b)).moved();
-                        setFigAtPos(a.addMove(new Move(b.getxOffset() / 2, 0)), getFigAtPos(new AbsPosition(rookXPos, a.getY())));
-                        setFigAtPos(new AbsPosition(rookXPos, a.getY()), null);
-                        playerTurn = -playerTurn;
-                        return true;
+                    moveRecord.add(new FullMove(a, b, this));
+                    int rookXPos = 0;
+                    setFigAtPos(a.addMove(b), getFigAtPos(a));
+                    setFigAtPos(a, null);
+                    getFigAtPos(a.addMove(b)).moved();
+                    setFigAtPos(a.addMove(new Move(b.getxOffset() / 2, 0)), getFigAtPos(new AbsPosition(rookXPos, a.getY())));
+                    setFigAtPos(new AbsPosition(rookXPos, a.getY()), null);
+
+                    playerTurn = -playerTurn;
+                    return true;
                 }
             } else {
+                moveRecord.add(new FullMove(a, b, this));
                 setFigAtPos(a.addMove(b), getFigAtPos(a));
                 setFigAtPos(a, null);
                 getFigAtPos(a.addMove(b)).moved();
@@ -197,7 +218,7 @@ public class Feld {
         return false;
     }
 
-    public MoveRecord getMoveRecord() {
+    public ArrayList<FullMove> getMoveRecord() {
         return moveRecord;
     }
 
@@ -207,30 +228,31 @@ public class Feld {
         } else {
             color = 7;
         }
-        if (!kinghasMoved(color) && !rookHasMoved(color, 0) && !horizontalStripHasFigur(1,3,color)) {
-            ArrayList<AbsPosition> a = checker.computeMoves(new AbsPosition(4,color));
-            if(a.contains(new AbsPosition(3,color))){
-                return true;
-            }
-        }
-        return false;
-    }
-    public boolean kingSideCastlePossible(int color) {
-        if (color == 1) {
-            color = 0;
-        } else {
-            color = 7;
-        }
-        if (!kinghasMoved(color) && !rookHasMoved(color, 1) && !horizontalStripHasFigur(5,6,color)) {
-            ArrayList<AbsPosition> a = checker.computeMoves(new AbsPosition(4,color));
-            if(a.contains(new AbsPosition(5,color))){
+        if (!kinghasMoved(color) && !rookHasMoved(color, 0) && !horizontalStripHasFigur(1, 3, color)) {
+            ArrayList<AbsPosition> a = checker.computeMoves(new AbsPosition(4, color));
+            if (a.contains(new AbsPosition(3, color))) {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean horizontalStripHasFigur(int x1,  int x2, int y) {
+    public boolean kingSideCastlePossible(int color) {
+        if (color == 1) {
+            color = 0;
+        } else {
+            color = 7;
+        }
+        if (!kinghasMoved(color) && !rookHasMoved(color, 1) && !horizontalStripHasFigur(5, 6, color)) {
+            ArrayList<AbsPosition> a = checker.computeMoves(new AbsPosition(4, color));
+            if (a.contains(new AbsPosition(5, color))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean horizontalStripHasFigur(int x1, int x2, int y) {
         for (int i = x1; i <= x2; i++) {
             if (feld[i][y].hasFigur()) {
                 return true;
@@ -238,9 +260,14 @@ public class Feld {
         }
         return false;
     }
-    public boolean isValidMove(FullMove move){
-        if(checker.computeMoves(move.getPos()).contains(move.getPos().addMove(move.getMov()))){
-            if(getFigAtPos(move.getPos()).getFarbe()==playerTurn){
+
+    public boolean isValidMove(FullMove move) {
+        if (checker.computeMoves(move.getPos()).contains(move.getPos().addMove(move.getMov()))) {
+            if (getFigAtPos(move.getPos()).getFarbe() == playerTurn) {
+                if (isInCheckAfterMove(move)) {
+                    System.out.println("king cant be in check after own move");
+                    return false;
+                }
                 return true;
             } else {
                 System.out.println("Figure of wrong color");
@@ -250,6 +277,23 @@ public class Feld {
         System.out.println("move not possible");
         return false;
     }
+
+    public boolean isInCheckAfterMove(FullMove fullMove) {
+        Feld test = copyFeld();
+        System.out.println(fullMove.getPos());
+        int color = test.getFigAtPos(fullMove.getPos()).getFarbe();
+        test.noTestMove(fullMove);
+        if (test.isInCheck(color)) {
+            return true;
+        }
+        return false;
+    }
+
+    public void noTestMove(FullMove fullMove) { //moves a figure with almost no checks attached for simulating if king is in check after own move (illegal)
+        setFigAtPos(fullMove.getPos().addMove(fullMove.getMov()), getFigAtPos(fullMove.getPos()));
+        setFigAtPos(fullMove.getPos(), null);
+    }
+
     public boolean rookHasMoved(int color, int side) { //side 0 is queenside, side 1 is kingside
         if (side == 1) {
             side = 7;
@@ -271,6 +315,25 @@ public class Feld {
             }
         }
         return true;
+    }
+
+    public Feld(boolean flag) {
+        this.feld = new Quadrat[8][8];
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; y < 8; y++) {
+                this.feld[x][y]=new Quadrat();
+            }
+        }
+    }
+
+    public Feld copyFeld() {
+        Feld res = new Feld(true);
+        for(int x = 0;x<8;x++){
+            for(int y = 0; y<8;y++){
+                res.feld[x][y].addFigur(this.feld[x][y].getFigur());
+            }
+        }
+        return res;
     }
 
     @Override
