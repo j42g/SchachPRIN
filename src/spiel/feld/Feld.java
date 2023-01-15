@@ -15,6 +15,9 @@ public class Feld {
 
     public int playerTurn;
     private MoveRecord moveRecord;
+    private AbsPosition enPassant;
+    private int fiftyMoveRule;
+    private int moveCount;
 
     public Feld(Feld feld) {
         this.feld = feld.feld;
@@ -45,7 +48,6 @@ public class Feld {
             feld[x][0] = new Quadrat(reihenfolgeW[x]);
         }
     }
-
 
     public String toFenNot() {
         int temp = 0;
@@ -145,7 +147,37 @@ public class Feld {
     }
 
     public Feld(String fen) {
-        // TODO
+        String[] fenparts = fen.split(" ");
+        // board
+        int file;
+        this.feld = new Quadrat[8][8];
+        String[] ranks = fenparts[0].split("/");
+        for (int rank = 0; rank < ranks.length; rank++) {
+            file = 0;
+            for (char c : ranks[rank].toCharArray()) {
+                if ("rnbqkpRNBQKP".indexOf(c) != -1) {
+                    feld[file][rank] = new Quadrat(Figur.fromString(c));
+                    file++;
+                } else if ("12345678".indexOf(c) != -1) {
+                    file += c - 0x31;
+                }
+            }
+
+        }
+        // turn
+        this.playerTurn = fenparts[1].equals("w") ? 1 : -1;
+        // TODO castling
+        // En passant
+        if (fenparts[3].equals("-")) {
+            this.enPassant = null;
+        } else {
+            this.enPassant = new AbsPosition(fenparts[3]);
+        }
+        // fifty move rule
+        this.fiftyMoveRule = Integer.parseInt(fenparts[4]);
+        // total move count
+        this.moveCount = Integer.parseInt(fenparts[5]);
+
     }
 
     public Figur getFigAtPos(AbsPosition pos) {

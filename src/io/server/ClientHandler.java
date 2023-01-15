@@ -137,7 +137,7 @@ public class ClientHandler extends Thread {
                             }
                             case 2 -> { // privater lobby beitreten
                                 if (server.joinPrivate(this, request.getLong("uuid"))) {
-                                    out.println("{\"type\":\"modeconfirm\",\"mode\":1");
+                                    out.println("{\"type\":\"modeconfirm\",\"mode\":2}");
                                     starteSpiel();
                                 } else {
                                     out.println("{\"type\":\"modedeny\",\"error\":\"ES EXISTIERT KEIN SPIEL MIT DIESER UUID\"}");
@@ -189,12 +189,11 @@ public class ClientHandler extends Thread {
 
     public void giveGame(SchachSpiel schachSpiel) {
         this.game = schachSpiel;
-        this.imSpiel = true;
+        out.println("{\"type\":\"fen\",\"fen\":\"" + game.getFen() + "\"}");
     }
 
     public void starteSpiel() {
         this.imSpiel = true;
-        out.println("{\"type\":\"fen\",\"fen\":\"" + game.getFen() + "\"}");
     }
 
     public void endGame() {

@@ -10,7 +10,10 @@ import spiel.moves.Move;
 public class Main {
 
     public static void main(String[] args) {
-        Gamehandler g = new Gamehandler();
+
+        Client a = new Client();
+        Thread b = new Thread(a);
+        b.start();
 
     }
 }

@@ -100,7 +100,7 @@ public class Server implements Runnable {
         Random gen = new Random();
         do {
             id = gen.nextLong();
-        } while (!isGameUUIDFree(id) && id > -1);
+        } while (!isGameUUIDFree(id) || id < 0);
         return id;
     }
 

@@ -80,6 +80,8 @@ public class Client implements Runnable {
                     } else { // IM SPIEL
                         if (input.equals("AUFGEBEN")) {
                             v.sendeJSON(new JSONObject("{\"type\":\"forfeit\"}"));
+                        }  else if (input.equals("VERLASSEN")) {
+                            // TODO
                         } else if (input.equals("ZUG")) {
                             if (amZug) {
                                 ziehen();
@@ -279,8 +281,10 @@ public class Client implements Runnable {
         }
         // mode-abhängige Daten
         if (modi == 2) { // uuid, des spiels, dem man beitreten will
+            System.out.println("AUSWAHL ERFOLGT");
             long uuid;
             while (true) {
+                System.out.println("UUID: ");
                 input = s.nextLine();
                 if (input.equalsIgnoreCase("ABBRECHEN")) {
                     System.out.println("VORGANG ABGEBROCHEN");
@@ -369,10 +373,10 @@ public class Client implements Runnable {
     private void starteSpiel() {
         this.imSpiel = true;
         JSONObject fen = v.warteAufJSON();
-        if (fen.getString("type").equals("fengame")) {
+        if (fen.getString("type").equals("fen")) {
             this.feld = new Feld(fen.getString("fen"));
         } else {
-            Logger.log("Client", "Messagetype ist nicht fengame. Fehler im Protokoll");
+            Logger.log("Client", "Messagetype ist nicht fen. Fehler im Protokoll");
             System.out.println("Fehler im Protokoll");
         }
         MoveListener ml = new MoveListener(this, v);
@@ -382,6 +386,13 @@ public class Client implements Runnable {
 
     public void amZug() {
         this.amZug = true;
+        JSONObject fen = v.warteAufJSON();
+        if (fen.getString("type").equals("moverequest")) {
+            System.out.println("SIE SIND AM ZUG. GEBEN SIE \"ZUG\"");
+            this.feld = new Feld(fen.getString("fen"));
+        } else {
+            System.out.println("Unbekannter Fehler");
+        }
     }
 
     private void ziehen() {
@@ -401,6 +412,16 @@ public class Client implements Runnable {
             }
         }
         v.sendeJSON(new JSONObject("{\"type\":\"move\",\"move\":\"" + move + "\"}"));
+        JSONObject res = v.warteAufJSON();
+        if (res.getString("type").equals("moveresponse")) {
+            if (res.getBoolean("success")) {
+                amZug = false;
+            } else {
+                System.out.println("Unbekannter Fehler");
+            }
+        } else {
+            System.out.println("Fehler im Protokoll");
+        }
 
     }
 

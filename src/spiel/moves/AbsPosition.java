@@ -9,6 +9,20 @@ public class AbsPosition {
         this.y = y;
     }
 
+    public AbsPosition(String square) {
+        if (square.length() == 2) {
+            if("abcdefgh".indexOf(square.charAt(0)) != -1 && "12345678".indexOf(square.charAt(1)) != -1) { // korrektes Format
+                this.x = square.charAt(0) - 0x61;
+                this.y = square.charAt(1) - 0x31;
+                System.out.println(x + ", " + y);
+            } else {
+                System.out.println("Falsches Format");
+            }
+        } else {
+            System.out.println("Falsches Format");
+        }
+    }
+
     public AbsPosition addMove(Move move) {
         return new AbsPosition(this.x + move.getxOffset(), this.y + move.getyOffset());
     }
@@ -24,7 +38,8 @@ public class AbsPosition {
     public int getY() {
         return y;
     }
-    public String toString(){
+
+    public String toString() {
         String AbcPos = "";
         String NPos = "";
         switch (x) {
@@ -50,10 +65,11 @@ public class AbsPosition {
 
         return AbcPos + NPos;
     }
-    public boolean equals(Object o){
-        if(o instanceof AbsPosition){
+
+    public boolean equals(Object o) {
+        if (o instanceof AbsPosition) {
             AbsPosition a = (AbsPosition) o;
-            if(a.getX() == this.x && a.getY() == this.y){
+            if (a.getX() == this.x && a.getY() == this.y) {
                 return true;
             }
         }
