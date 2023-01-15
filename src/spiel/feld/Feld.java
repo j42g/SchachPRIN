@@ -15,15 +15,13 @@ public class Feld {
 
     public int playerTurn;
     private ArrayList<FullMove> moveRecord;
-    public boolean fiftyMoveRule;
+    private AbsPosition enPassant;
+    private int fiftyMoveRule;
+    private int moveCount;
 
     public Feld(Quadrat[][] feld) {
         this.feld = feld;
     }
-    private MoveRecord moveRecord;
-    private AbsPosition enPassant;
-    private int fiftyMoveRule;
-    private int moveCount;
 
     public Feld(Feld feld) {
         Quadrat[][] temp = new Quadrat[8][8];
