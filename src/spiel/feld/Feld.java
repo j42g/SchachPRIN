@@ -165,37 +165,28 @@ public class Feld {
     }
 
     public boolean move(AbsPosition a, Move b) {
-        ArrayList<AbsPosition> temp = checker.computeMoves(a);
-        if(getFigAtPos(a) instanceof Koenig && Math.abs(b.getxOffset())==2){
-            int color = 1;
-            if(a.getY()==7){
-                color = -1;
-            }
-            if(b.getxOffset()>0){
-                if(kingSideCastlePossible(color)){
-                    int rookXPos = 7;
-                    setFigAtPos(a.addMove(b), getFigAtPos(a));
-                    setFigAtPos(a, null);
-                    getFigAtPos(a.addMove(b)).moved();
-                    setFigAtPos(a.addMove(new Move(b.getxOffset()/2,0)),getFigAtPos(new AbsPosition(rookXPos,a.getY())));
-                    setFigAtPos(new AbsPosition(rookXPos,a.getY()),null);
-                    playerTurn = -playerTurn;
-                    return true;
+        if(isValidMove(new FullMove(a,b))) {
+            if (getFigAtPos(a) instanceof Koenig && Math.abs(b.getxOffset()) == 2) {
+                if (b.getxOffset() > 0) {
+                        int rookXPos = 7;
+                        setFigAtPos(a.addMove(b), getFigAtPos(a));
+                        setFigAtPos(a, null);
+                        getFigAtPos(a.addMove(b)).moved();
+                        setFigAtPos(a.addMove(new Move(b.getxOffset() / 2, 0)), getFigAtPos(new AbsPosition(rookXPos, a.getY())));
+                        setFigAtPos(new AbsPosition(rookXPos, a.getY()), null);
+                        playerTurn = -playerTurn;
+                        return true;
+                } else {
+                        int rookXPos = 0;
+                        setFigAtPos(a.addMove(b), getFigAtPos(a));
+                        setFigAtPos(a, null);
+                        getFigAtPos(a.addMove(b)).moved();
+                        setFigAtPos(a.addMove(new Move(b.getxOffset() / 2, 0)), getFigAtPos(new AbsPosition(rookXPos, a.getY())));
+                        setFigAtPos(new AbsPosition(rookXPos, a.getY()), null);
+                        playerTurn = -playerTurn;
+                        return true;
                 }
             } else {
-                if (queenSideCastlePossible(color)){
-                    int rookXPos = 0;
-                    setFigAtPos(a.addMove(b), getFigAtPos(a));
-                    setFigAtPos(a, null);
-                    getFigAtPos(a.addMove(b)).moved();
-                    setFigAtPos(a.addMove(new Move(b.getxOffset()/2,0)),getFigAtPos(new AbsPosition(rookXPos,a.getY())));
-                    setFigAtPos(new AbsPosition(rookXPos,a.getY()),null);
-                    playerTurn = -playerTurn;
-                    return true;
-                }
-            }
-        } else {
-            if (temp.contains(a.addMove(b))) {
                 setFigAtPos(a.addMove(b), getFigAtPos(a));
                 setFigAtPos(a, null);
                 getFigAtPos(a.addMove(b)).moved();
@@ -249,8 +240,14 @@ public class Feld {
     }
     public boolean isValidMove(FullMove move){
         if(checker.computeMoves(move.getPos()).contains(move.getPos().addMove(move.getMov()))){
-            return true;
+            if(getFigAtPos(move.getPos()).getFarbe()==playerTurn){
+                return true;
+            } else {
+                System.out.println("Figure of wrong color");
+                return false;
+            }
         }
+        System.out.println("move not possible");
         return false;
     }
     public boolean rookHasMoved(int color, int side) { //side 0 is queenside, side 1 is kingside
