@@ -13,7 +13,7 @@ public class Gamehandler {
     Feld feld;
 
     public Gamehandler() {
-        this.playerturn = 1;
+
         feld = new Feld();
         gameLogic();
     }
@@ -31,7 +31,7 @@ public class Gamehandler {
     }
 
     public void gameLogic() {
-        while (feld.getAllPossibleMoves(playerturn).size() != 0) {
+        while (true) {
             System.out.println(feld);
             String temp = "";
             System.out.print("pos of Figure: ");
@@ -46,10 +46,8 @@ public class Gamehandler {
             temp = s.nextLine();
             System.out.println();
             Move mov = convertMov(temp);
-
             feld.move(pos,mov);
-
-            playerturn = -playerturn;
+            System.out.println(feld.getMoveRecord());
         }
     }
 }
