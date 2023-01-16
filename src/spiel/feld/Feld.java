@@ -19,22 +19,17 @@ public class Feld {
     private int fiftyMoveRule;
     private int moveCount;
 
+    private int gameState;
+    private boolean QWCastling=true;
+    private boolean QBCastling=true;
+    private boolean KWCastling=true;
+    private boolean KBCastling=true;
+
     public Feld(Quadrat[][] feld) {
         this.feld = feld;
     }
 
-    public Feld(Feld feld) {
-        Quadrat[][] temp = new Quadrat[8][8];
-        for (int x = 0; x < 8; x++) {
-            for (int y = 0; y < 8; y++) {
-                temp[x][y] = feld.feld[x][y];
-            }
-        }
-        this.feld = temp;
-        this.systemmessage = feld.systemmessage;
-        this.checker = feld.checker;
-        this.moveRecord = feld.getMoveRecord();
-    }
+
 
     public Feld() {
         playerTurn = 1;
@@ -44,23 +39,21 @@ public class Feld {
             for (int x = 0; x < 8; x++) {
                 feld[x][y] = new Quadrat();
             }
-        }/*
+        }
         Figur[] reihenfolgeW = new Figur[]{new Turm(WEISS), new Springer(WEISS), new Laeufer(WEISS), new Dame(WEISS), new Koenig(WEISS), new Laeufer(WEISS), new Springer(WEISS), new Turm(WEISS)};
         //Figur[] reihenfolgeW = new Figur[]{new Turm(WEISS), null, null, null, new Koenig(WEISS), new Laeufer(WEISS), new Springer(WEISS), new Turm(WEISS)}; //queencastle setup
         Figur[] reihenfolgeS = new Figur[]{new Turm(SCHWARZ), new Springer(SCHWARZ), new Laeufer(SCHWARZ), new Dame(SCHWARZ), new Koenig(SCHWARZ), new Laeufer(SCHWARZ), new Springer(SCHWARZ), new Turm(SCHWARZ)};
         for (int x = 0; x < 8; x++) { // schwarz
             feld[x][7] = new Quadrat(reihenfolgeS[x]);
-            //feld[x][6] = new Quadrat(new Bauer(SCHWARZ));
+            feld[x][6] = new Quadrat(new Bauer(SCHWARZ));
         }
 
         for (int x = 0; x < 8; x++) { // weiß
             feld[x][1] = new Quadrat(new Bauer(WEISS));
             feld[x][0] = new Quadrat(reihenfolgeW[x]);
         }
-        */
-        feld[7][7] = new Quadrat(new Koenig(SCHWARZ));
-        feld[7][6] = new Quadrat(new Laeufer(SCHWARZ));
-        feld[7][5] = new Quadrat(new Koenig(WEISS));
+
+
 
     }
 
@@ -262,7 +255,11 @@ public class Feld {
         if (!kinghasMoved(color) && !rookHasMoved(color, 0) && !horizontalStripHasFigur(1, 3, color)) {
             ArrayList<AbsPosition> a = checker.computeMoves(new AbsPosition(4, color));
             if (a.contains(new AbsPosition(3, color))) {
-                return true;
+                if (color == 0){
+                    return true & QWCastling;
+                } else {
+                    return true & QBCastling;
+                }
             }
         }
         return false;
@@ -277,7 +274,11 @@ public class Feld {
         if (!kinghasMoved(color) && !rookHasMoved(color, 1) && !horizontalStripHasFigur(5, 6, color)) {
             ArrayList<AbsPosition> a = checker.computeMoves(new AbsPosition(4, color));
             if (a.contains(new AbsPosition(5, color))) {
-                return true;
+                if(color == 0){
+                    return true & KWCastling;
+                } else {
+                    return true & KBCastling;
+                }
             }
         }
         return false;

@@ -8,7 +8,10 @@ public class AbsPosition {
         this.x = x;
         this.y = y;
     }
-
+    public AbsPosition(AbsPosition a){
+        this.x = a.getX();
+        this.y = a.getY();
+    }
     public AbsPosition(String square) {
         if (square.length() == 2) {
             if("abcdefgh".indexOf(square.charAt(0)) != -1 && "12345678".indexOf(square.charAt(1)) != -1) { // korrektes Format

@@ -23,9 +23,33 @@ public class ActualMoves {
             System.out.println("no figure at requested position, computeMovesBack() error");
             return new ArrayList<AbsPosition>();
         }
+        ArrayList<AbsPosition> res = new ArrayList<AbsPosition>();
         MovePattern pattern = feld.getFigAtPos(pos).getMoveSet();
         if (feld.getFigAtPos(pos) instanceof Bauer) {
+            for(Move box : pattern.getMovePattern()){
+                try {
+                    if (box.getxOffset() != 0) {
+                        if (feld.getFigAtPos(pos.addMove(box)) != null) {
+                            if (feld.getFigAtPos(pos.addMove(box)).getFarbe() == -feld.getFigAtPos(pos).getFarbe()) {
+                                res.add(pos.addMove(box));
+                            }
+                        }
+                    } else {
+                        if (feld.getFigAtPos(pos.addMove(box)) == null) {
+                            if (Math.abs(box.getyOffset()) == 2) {
+                                if (res.contains(new AbsPosition(pos.addMove(new Move(0, feld.getFigAtPos(pos).getFarbe()))))) {
+                                    res.add(pos.addMove(box));
+                                }
+                            } else {
+                                res.add(pos.addMove(box));
+                            }
+                        }
+                    }
+                }catch(Exception E){
 
+                }
+            }
+            return res;
         }
         if (feld.getFigAtPos(pos) instanceof Koenig && recursion) {
             if (feld.queenSideCastlePossible(feld.getFigAtPos(pos).getFarbe())) {
@@ -34,7 +58,6 @@ public class ActualMoves {
                 pattern.addMove(2, 0);
             }
         }
-        ArrayList<AbsPosition> res = new ArrayList<AbsPosition>();
         for (Move box : pattern.getMovePattern()) {
             try {
                 res.add(pos.addMove(box));
