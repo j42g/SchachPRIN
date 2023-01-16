@@ -205,7 +205,6 @@ public class Feld {
     }
 
     public boolean move(AbsPosition a, Move b) {
-        System.out.println(isValidMove(new FullMove(a, b, this)));
         if (isValidMove(new FullMove(a, b, this))) {
             if (getFigAtPos(a) instanceof Koenig && Math.abs(b.getxOffset()) == 2) {
                 if (b.getxOffset() > 0) {
@@ -216,6 +215,7 @@ public class Feld {
                     getFigAtPos(a.addMove(b)).moved();
                     setFigAtPos(a.addMove(new Move(b.getxOffset() / 2, 0)), getFigAtPos(new AbsPosition(rookXPos, a.getY())));
                     setFigAtPos(new AbsPosition(rookXPos, a.getY()), null);
+                    enPassant = null;
                     playerTurn = -playerTurn;
                     return true;
                 } else {
@@ -226,12 +226,19 @@ public class Feld {
                     getFigAtPos(a.addMove(b)).moved();
                     setFigAtPos(a.addMove(new Move(b.getxOffset() / 2, 0)), getFigAtPos(new AbsPosition(rookXPos, a.getY())));
                     setFigAtPos(new AbsPosition(rookXPos, a.getY()), null);
-
+                    enPassant = null;
                     playerTurn = -playerTurn;
                     return true;
                 }
             } else {
                 moveRecord.add(new FullMove(a, b, this));
+                if(getFigAtPos(a) instanceof Bauer && getFigAtPos(a.addMove(b)) == null && b.getxOffset() != 0){
+                    setFigAtPos(a.addMove(new Move(b.getxOffset(),0)),null);
+
+                }
+                if(!(getFigAtPos(a)instanceof Bauer && Math.abs(b.getyOffset())!=2)){
+                    enPassant = null;
+                }
                 setFigAtPos(a.addMove(b), getFigAtPos(a));
                 setFigAtPos(a, null);
                 getFigAtPos(a.addMove(b)).moved();
@@ -366,6 +373,14 @@ public class Feld {
             }
         }
         return res;
+    }
+
+    public AbsPosition getEnPassant() {
+        return enPassant;
+    }
+
+    public void setEnPassant(AbsPosition enPassant) {
+        this.enPassant = enPassant;
     }
 
     @Override

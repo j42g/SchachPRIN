@@ -33,12 +33,15 @@ public class ActualMoves {
                             if (feld.getFigAtPos(pos.addMove(box)).getFarbe() == -feld.getFigAtPos(pos).getFarbe()) {
                                 res.add(pos.addMove(box));
                             }
+                        } else if(pos.addMove(box).equals(feld.getEnPassant())){
+                            res.add(pos.addMove(box));
                         }
                     } else {
                         if (feld.getFigAtPos(pos.addMove(box)) == null) {
                             if (Math.abs(box.getyOffset()) == 2) {
                                 if (res.contains(new AbsPosition(pos.addMove(new Move(0, feld.getFigAtPos(pos).getFarbe()))))) {
                                     res.add(pos.addMove(box));
+                                    feld.setEnPassant(new AbsPosition(pos.addMove(new Move(0, feld.getFigAtPos(pos).getFarbe()))));
                                 }
                             } else {
                                 res.add(pos.addMove(box));
