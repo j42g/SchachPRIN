@@ -8,8 +8,7 @@ import java.util.ArrayList;
 public class Feld {
 
     public Quadrat[][] feld;
-    public String systemmessage;
-    private ActualMoves checker = new ActualMoves(this);
+    public ActualMoves checker = new ActualMoves(this);
     public static final int WEISS = 1;
     public static final int SCHWARZ = -1;
 
@@ -18,17 +17,15 @@ public class Feld {
     private AbsPosition enPassant;
     private int fiftyMoveRule;
     private int moveCount;
-
     private int gameState;
-    private boolean QWCastling=true;
-    private boolean QBCastling=true;
-    private boolean KWCastling=true;
-    private boolean KBCastling=true;
+    private boolean QWCastling = true;
+    private boolean QBCastling = true;
+    private boolean KWCastling = true;
+    private boolean KBCastling = true;
 
     public Feld(Quadrat[][] feld) {
         this.feld = feld;
     }
-
 
 
     public Feld() {
@@ -52,7 +49,6 @@ public class Feld {
             feld[x][1] = new Quadrat(new Bauer(WEISS));
             feld[x][0] = new Quadrat(reihenfolgeW[x]);
         }
-
 
 
     }
@@ -174,7 +170,10 @@ public class Feld {
         }
         // turn
         this.playerTurn = fenparts[1].equals("w") ? 1 : -1;
-        // TODO castling
+        this.KWCastling = fenparts[2].contains("K");
+        this.QWCastling = fenparts[2].contains("Q");
+        this.KBCastling = fenparts[2].contains("k");
+        this.QBCastling = fenparts[2].contains("q");
         // En passant
         if (fenparts[3].equals("-")) {
             this.enPassant = null;
@@ -187,6 +186,40 @@ public class Feld {
         this.moveCount = Integer.parseInt(fenparts[5]);
 
     }
+
+    public FullMove parseMove(String a) {
+        AbsPosition origin = null;
+        Move move = null;
+        if (a.length() < 5 || a.length() > 6) {
+            return null;
+        }
+        if (Character.isDigit(a.charAt(1))) {
+            origin = new AbsPosition(a.substring(0, 1));
+            if (origin.isPossible()) {
+                if (getFigAtPos(origin) instanceof Bauer) {
+                    AbsPosition destination = new AbsPosition(a.substring(3, 4));
+                    move = new Move(origin, destination);
+                    if (isValidMove(new FullMove(origin, move, this))) {
+                        if (move.getxOffset() == 0 && a.contains("-") || move.getxOffset() != 0 && a.contains("x")) {
+                            return new FullMove(origin, move, this);
+                        }
+                    }
+                }
+            }
+        }
+        if (Character.isDigit(2)) {
+            origin = new AbsPosition(a.substring(1, 2));
+            if (origin.isPossible()) {
+                if (getFigAtPos(origin) instanceof Turm && a.charAt(0) == 'R' || getFigAtPos(origin) instanceof Springer && a.charAt(0) == 'N' || getFigAtPos(origin) instanceof Dame && a.charAt(0) == 'D' || getFigAtPos(origin) instanceof Laeufer && a.charAt(0) == 'B' || getFigAtPos(origin) instanceof Koenig && a.charAt(0) == 'K') {
+                    AbsPosition destination = new AbsPosition(a.substring(4,5));
+                    move = new Move(origin,destination);
+                    //if(isValidMove(new FullMove))
+                }
+            }
+        }
+        return null;
+    }
+
 
     public Figur getFigAtPos(AbsPosition pos) {
         return feld[pos.getX()][pos.getY()].getFigur();
@@ -232,11 +265,11 @@ public class Feld {
                 }
             } else {
                 moveRecord.add(new FullMove(a, b, this));
-                if(getFigAtPos(a) instanceof Bauer && getFigAtPos(a.addMove(b)) == null && b.getxOffset() != 0){
-                    setFigAtPos(a.addMove(new Move(b.getxOffset(),0)),null);
+                if (getFigAtPos(a) instanceof Bauer && getFigAtPos(a.addMove(b)) == null && b.getxOffset() != 0) {
+                    setFigAtPos(a.addMove(new Move(b.getxOffset(), 0)), null);
 
                 }
-                if(!(getFigAtPos(a)instanceof Bauer && Math.abs(b.getyOffset())!=2)){
+                if (!(getFigAtPos(a) instanceof Bauer && Math.abs(b.getyOffset()) != 2)) {
                     enPassant = null;
                 }
                 setFigAtPos(a.addMove(b), getFigAtPos(a));
@@ -262,7 +295,7 @@ public class Feld {
         if (!kinghasMoved(color) && !rookHasMoved(color, 0) && !horizontalStripHasFigur(1, 3, color)) {
             ArrayList<AbsPosition> a = checker.computeMoves(new AbsPosition(4, color));
             if (a.contains(new AbsPosition(3, color))) {
-                if (color == 0){
+                if (color == 0) {
                     return true & QWCastling;
                 } else {
                     return true & QBCastling;
@@ -281,7 +314,7 @@ public class Feld {
         if (!kinghasMoved(color) && !rookHasMoved(color, 1) && !horizontalStripHasFigur(5, 6, color)) {
             ArrayList<AbsPosition> a = checker.computeMoves(new AbsPosition(4, color));
             if (a.contains(new AbsPosition(5, color))) {
-                if(color == 0){
+                if (color == 0) {
                     return true & KWCastling;
                 } else {
                     return true & KBCastling;
@@ -319,7 +352,6 @@ public class Feld {
 
     public boolean isInCheckAfterMove(FullMove fullMove) {
         Feld test = copyFeld();
-        System.out.println(fullMove.getPos());
         int color = test.getFigAtPos(fullMove.getPos()).getFarbe();
         test.noTestMove(fullMove);
         if (test.isInCheck(color)) {
@@ -360,15 +392,15 @@ public class Feld {
         this.feld = new Quadrat[8][8];
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
-                this.feld[x][y]=new Quadrat();
+                this.feld[x][y] = new Quadrat();
             }
         }
     }
 
     public Feld copyFeld() {
         Feld res = new Feld(true);
-        for(int x = 0;x<8;x++){
-            for(int y = 0; y<8;y++){
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; y < 8; y++) {
                 res.feld[x][y].addFigur(this.feld[x][y].getFigur());
             }
         }

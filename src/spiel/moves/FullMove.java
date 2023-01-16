@@ -23,7 +23,6 @@ public class FullMove {
                     this.longNotation = pos.toString()+schlagen+pos.addMove(mov).toString()+"todopromotion";
                 }
         }
-        System.out.println(longNotation);
     }
 
     public AbsPosition getPos() {
