@@ -32,8 +32,6 @@ public class SchachSpiel implements Runnable {
             this.white = null;
             this.black = a;
         }
-        // threads informieren
-        a.giveGame(this);
         this.feld = new Feld();
         // TODO weiß nach move fragen aka gameloop starten
         Thread gameThread = new Thread(this);
@@ -52,9 +50,6 @@ public class SchachSpiel implements Runnable {
             this.white = b;
             this.black = a;
         }
-        // threads informieren
-        a.giveGame(this);
-        b.giveGame(this);
         // TODO feld generieren
         // TODO weiß nach move fragen aka gameloop starten
         Thread gameThread = new Thread(this);

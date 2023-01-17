@@ -226,12 +226,14 @@ public class Client implements Runnable {
                 benutzername = s.nextLine();
                 if (benutzername.equalsIgnoreCase("ABBRECHEN")) {
                     System.out.println("VORGANG ABGEBROCHEN");
+                    Logger.log("client", "Registrierungsvorgange abgebrochen");
                     return;
                 }
                 System.out.println("WÄHLEN SIE EIN PASSWORT");
                 password = s.nextLine();
                 if (password.equalsIgnoreCase("ABBRECHEN")) {
                     System.out.println("VORGANG ABGEBROCHEN");
+                    Logger.log("client", "Registrierungsvorgange abgebrochen");
                     return;
                 }
                 System.out.println("Benutzername:\t" + benutzername + "\nPasswort:\t" + password);
@@ -241,6 +243,7 @@ public class Client implements Runnable {
             Logger.log("client", "Sende Registrierungsdaten");
             v.sendeJSON(new JSONObject(String.format("{\"type\":\"register\",\"name\":\"%s\",\"password\":%s}", benutzername, hashedpw)));
             antwort = serverInput();
+            Logger.log("client", "Antwort empfangen");
             if (antwort.getString("type").equals("authresponse")) {
                 if (antwort.getBoolean("success")) {
                     Logger.log("client", "Registrierung erfolgreich");
@@ -336,7 +339,7 @@ public class Client implements Runnable {
         } else {
             System.out.println("FEHLER BEIM PROTOKOLL");
         }
-
+        System.out.println(antwort);
         if (modi == 0) {
             if (antwort.getBoolean("ready")) {
                 System.out.println("GEGNER GEFUNDEN. SPIEL STARTET");
