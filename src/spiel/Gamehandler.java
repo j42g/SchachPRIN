@@ -2,6 +2,7 @@ package spiel;
 
 import spiel.feld.Feld;
 import spiel.moves.AbsPosition;
+import spiel.moves.FullMove;
 import spiel.moves.Move;
 
 import java.util.Scanner;
@@ -34,20 +35,14 @@ public class Gamehandler {
         while (true) {
             System.out.println(feld);
             String temp = "";
-            System.out.print("pos of Figure: ");
+            System.out.print("move: ");
             temp = s.nextLine();
-            AbsPosition pos = convertAbs(temp);
-            if(feld.getFigAtPos(pos)==null){
-                System.out.println("No figure there");
+            FullMove a = feld.parseMove(temp);
+            if(a==null){
+                System.out.println("Invalid move");
                 continue;
             }
-            System.out.println();
-            System.out.println(feld.checker.computeMoves(pos));
-            System.out.print("move offset: ");
-            temp = s.nextLine();
-            System.out.println();
-            Move mov = convertMov(temp);
-            feld.move(pos,mov);
+            feld.move(a);
             System.out.println(feld.getMoveRecord());
         }
     }

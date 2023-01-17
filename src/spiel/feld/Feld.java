@@ -16,6 +16,7 @@ public class Feld {
     private ArrayList<FullMove> moveRecord;
     private AbsPosition enPassant;
     private int fiftyMoveRule;
+    private Figur promotionPiece;
     private int moveCount;
     private int gameState;
     private boolean QWCastling = true;
@@ -40,6 +41,7 @@ public class Feld {
         Figur[] reihenfolgeW = new Figur[]{new Turm(WEISS), new Springer(WEISS), new Laeufer(WEISS), new Dame(WEISS), new Koenig(WEISS), new Laeufer(WEISS), new Springer(WEISS), new Turm(WEISS)};
         //Figur[] reihenfolgeW = new Figur[]{new Turm(WEISS), null, null, null, new Koenig(WEISS), new Laeufer(WEISS), new Springer(WEISS), new Turm(WEISS)}; //queencastle setup
         Figur[] reihenfolgeS = new Figur[]{new Turm(SCHWARZ), new Springer(SCHWARZ), new Laeufer(SCHWARZ), new Dame(SCHWARZ), new Koenig(SCHWARZ), new Laeufer(SCHWARZ), new Springer(SCHWARZ), new Turm(SCHWARZ)};
+
         for (int x = 0; x < 8; x++) { // schwarz
             feld[x][7] = new Quadrat(reihenfolgeS[x]);
             feld[x][6] = new Quadrat(new Bauer(SCHWARZ));
@@ -49,8 +51,6 @@ public class Feld {
             feld[x][1] = new Quadrat(new Bauer(WEISS));
             feld[x][0] = new Quadrat(reihenfolgeW[x]);
         }
-
-
     }
 
     public String toFenNot() {
@@ -65,7 +65,7 @@ public class Feld {
                         res += temp;
                         temp = 0;
                     }
-                    res += toRightNot(feld[x][y].getFigur().toString(), feld[x][y].getFigur().getFarbe());
+                    res += feld[x][y].getFigur().getFenNotation();
                 }
             }
             if (temp != 0) {
@@ -79,69 +79,15 @@ public class Feld {
         return res;
     }
 
-    public String toRightNot(String a, int color) {
-        String res = "";
-        switch (a) {
-            case ("T") -> {
-                res = "R";
-            }
-            case ("L") -> {
-                res = "B";
-            }
-            case ("S") -> {
-                res = "N";
-            }
-            case ("D") -> {
-                res = "Q";
-            }
-            case ("K") -> {
-                res = "K";
-            }
-            case ("B") -> {
-                res = "P";
-            }
-        }
-        if (color == -1) {
-            res = Character.toLowerCase(res.charAt(0)) + "";
-        }
-        return res;
-    }
-
-    public AbsPosition getKingPos(int color) {
-        for (int x = 0; x < 8; x++) {
-            for (int y = 0; y < 8; y++) {
-                if (feld[x][y].hasFigur()) {
-                    if (feld[x][y].getFigur() instanceof Koenig) {
-                        if (feld[x][y].getFigur().getFarbe() == color) {
-                            return new AbsPosition(x, y);
-                        }
-                    }
-                }
-            }
-        }
-        return new AbsPosition(-1, -1);
-    }
 
     public boolean isInCheck(int color) {
-        if (getAllPossibleMoves(-color).contains(getKingPos(color))) {
-            return true;
-        }
-        return false;
+        return getAllPossibleMoves(-color).contains(getKingPos(color)); //checks if king is in a position which an enemy piece can reach
     }
 
-    public ArrayList<AbsPosition> getAllPossibleMoves(int color) {
-        ArrayList<AbsPosition> res = new ArrayList<AbsPosition>();
-        for (int x = 0; x < 8; x++) {
-            for (int y = 0; y < 8; y++) {
-                if (feld[x][y].hasFigur()) {
-                    if (feld[x][y].getFigur().getFarbe() == color) {
-                        res.addAll(checker.computeMovesBack(new AbsPosition(x, y), true));
-                    }
-                }
-            }
-        }
-        return res;
+    public boolean isMate(int color) {
+        return getAllPossibleMoves(color).size() == 0 && isInCheck(color); //checks if king is in checks and no moves change that
     }
+
 
     public Feld(ArrayList<FullMove> a) {
         this();
@@ -188,46 +134,60 @@ public class Feld {
     }
 
     public FullMove parseMove(String a) {
-        AbsPosition origin = null;
-        Move move = null;
-        if (a.length() < 5 || a.length() > 6) {
+        AbsPosition origin;
+        Move move;
+        if (a.length() < 4 || a.length() > 5) {
+            System.out.println("Falsche Länge");
             return null;
         }
         if (Character.isDigit(a.charAt(1))) {
-            origin = new AbsPosition(a.substring(0, 1));
+            origin = new AbsPosition(a.substring(0, 2));
             if (origin.isPossible()) {
-                if (getFigAtPos(origin) instanceof Bauer) {
-                    AbsPosition destination = new AbsPosition(a.substring(3, 4));
+                AbsPosition destination = new AbsPosition(a.charAt(2) + "" + a.charAt(3));
+                if (destination.isPossible()) {
                     move = new Move(origin, destination);
                     if (isValidMove(new FullMove(origin, move, this))) {
-                        if (move.getxOffset() == 0 && a.contains("-") || move.getxOffset() != 0 && a.contains("x")) {
-                            return new FullMove(origin, move, this);
+                        if (!(getFigAtPos(origin) instanceof Bauer && (destination.getY() == 7) || destination.getY() == 0)) {
+                            if (a.length() == 5) {
+                                return null;
+                            }
+                        } else {
+                            if (a.length() == 4) {
+                                return null;
+                            }
+                            switch (a.charAt(4)) {
+                                case 'Q' -> {
+                                    promotionPiece = new Dame(getFigAtPos(origin).getFarbe());
+                                }
+                                case 'N' -> {
+                                    promotionPiece = new Springer(getFigAtPos(origin).getFarbe());
+                                }
+                                case 'B' -> {
+                                    promotionPiece = new Laeufer(getFigAtPos(origin).getFarbe());
+                                }
+                                case 'R' -> {
+                                    promotionPiece = new Turm(getFigAtPos(origin).getFarbe());
+                                }
+                                default -> {
+                                    return null;
+                                }
+                            }
+                            FullMove temp = new FullMove(origin, move, this, a.charAt(4) + "");
+                            System.out.println("Promotionmove " + a.charAt(4));
+                            moveRecord.add(temp);
+                            return temp;
                         }
+                        FullMove temp = new FullMove(origin, move, this);
+                        moveRecord.add(temp);
+                        return temp;
                     }
                 }
             }
         }
-        if (Character.isDigit(2)) {
-            origin = new AbsPosition(a.substring(1, 2));
-            if (origin.isPossible()) {
-                if (getFigAtPos(origin) instanceof Turm && a.charAt(0) == 'R' || getFigAtPos(origin) instanceof Springer && a.charAt(0) == 'N' || getFigAtPos(origin) instanceof Dame && a.charAt(0) == 'D' || getFigAtPos(origin) instanceof Laeufer && a.charAt(0) == 'B' || getFigAtPos(origin) instanceof Koenig && a.charAt(0) == 'K') {
-                    AbsPosition destination = new AbsPosition(a.substring(4,5));
-                    move = new Move(origin,destination);
-                    //if(isValidMove(new FullMove))
-                }
-            }
-        }
+
         return null;
     }
 
-
-    public Figur getFigAtPos(AbsPosition pos) {
-        return feld[pos.getX()][pos.getY()].getFigur();
-    }
-
-    public void setFigAtPos(AbsPosition pos, Figur fig) {
-        feld[pos.getX()][pos.getY()].addFigur(fig);
-    }
 
     public void move(FullMove a) {
         move(a.getPos(), a.getMov());
@@ -242,7 +202,6 @@ public class Feld {
             if (getFigAtPos(a) instanceof Koenig && Math.abs(b.getxOffset()) == 2) {
                 if (b.getxOffset() > 0) {
                     int rookXPos = 7;
-                    moveRecord.add(new FullMove(a, b, this));
                     setFigAtPos(a.addMove(b), getFigAtPos(a));
                     setFigAtPos(a, null);
                     getFigAtPos(a.addMove(b)).moved();
@@ -252,7 +211,6 @@ public class Feld {
                     playerTurn = -playerTurn;
                     return true;
                 } else {
-                    moveRecord.add(new FullMove(a, b, this));
                     int rookXPos = 0;
                     setFigAtPos(a.addMove(b), getFigAtPos(a));
                     setFigAtPos(a, null);
@@ -264,13 +222,15 @@ public class Feld {
                     return true;
                 }
             } else {
-                moveRecord.add(new FullMove(a, b, this));
                 if (getFigAtPos(a) instanceof Bauer && getFigAtPos(a.addMove(b)) == null && b.getxOffset() != 0) {
                     setFigAtPos(a.addMove(new Move(b.getxOffset(), 0)), null);
 
                 }
                 if (!(getFigAtPos(a) instanceof Bauer && Math.abs(b.getyOffset()) != 2)) {
                     enPassant = null;
+                }
+                if (getFigAtPos(a) instanceof Bauer && (a.addMove(b).getY() == 7 || a.addMove(b).getY() == 0)) {
+                    setFigAtPos(a, promotionPiece);
                 }
                 setFigAtPos(a.addMove(b), getFigAtPos(a));
                 setFigAtPos(a, null);
@@ -282,9 +242,6 @@ public class Feld {
         return false;
     }
 
-    public ArrayList<FullMove> getMoveRecord() {
-        return moveRecord;
-    }
 
     public boolean queenSideCastlePossible(int color) {
         if (color == 1) {
@@ -411,17 +368,80 @@ public class Feld {
         return enPassant;
     }
 
+    public ArrayList<FullMove> getMoveRecord() {
+        return moveRecord;
+    }
+
+    public ArrayList<AbsPosition> getAllPossibleMoves(int color) {
+        ArrayList<AbsPosition> res = new ArrayList<AbsPosition>();
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; y < 8; y++) {
+                if (feld[x][y].hasFigur()) {
+                    if (feld[x][y].getFigur().getFarbe() == color) {
+                        res.addAll(checker.computeMovesBack(new AbsPosition(x, y), true));
+                    }
+                }
+            }
+        }
+        return res;
+    }
+
+    public Figur getFigAtPos(AbsPosition pos) {
+        return feld[pos.getX()][pos.getY()].getFigur();
+    }
+
+    public void setFigAtPos(AbsPosition pos, Figur fig) {
+        feld[pos.getX()][pos.getY()].addFigur(fig);
+    }
+
     public void setEnPassant(AbsPosition enPassant) {
         this.enPassant = enPassant;
+    }
+    public AbsPosition getKingPos(int color) {
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; y < 8; y++) {
+                if (feld[x][y].hasFigur()) {
+                    if (feld[x][y].getFigur() instanceof Koenig) {
+                        if (feld[x][y].getFigur().getFarbe() == color) {
+                            return new AbsPosition(x, y);
+                        }
+                    }
+                }
+            }
+        }
+        return new AbsPosition(-1, -1);
     }
 
     @Override
     public String toString() {
         String res = "";
+        int bmk = 8;
+        int temp = 7;
         for (int i = 7; i > -1; i--) {
+
+
             for (int j = 0; j < 8; j++) {
                 if (feld[j][i] != null) {
-                    res += feld[j][i];
+                    res += "|" +feld[j][i];
+
+                    if (j==7){
+                        res += "|";
+                        if (i ==0){
+                            res += "1";
+                            res += "\n";
+                            res += "|A|B|C|D|E|F|G|H|" ;
+                        }
+                    }
+                    if(j ==7){
+                        if(i==temp) {
+                            if (bmk > 1) {
+                                res += bmk + "";
+                                bmk--;
+                                temp--;
+                            }
+                        }
+
+                    }
                 }
             }
             res += "\n";

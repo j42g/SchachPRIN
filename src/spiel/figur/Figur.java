@@ -5,7 +5,7 @@ import spiel.moves.MovePattern;
 public abstract class Figur {
 
     protected final int farbe;
-
+    private String fenNotation;
     protected MovePattern moveSet = new MovePattern();
 
     public Figur(int farbe) {
@@ -23,6 +23,7 @@ public abstract class Figur {
     public abstract void moved();
 
     public abstract boolean getHasMoved();
+    public abstract String getFenNotation();
 
     public static Figur fromString(char piece) {
         int farbe = Character.isUpperCase(piece) ? 1 : -1;

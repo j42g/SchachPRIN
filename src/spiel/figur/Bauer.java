@@ -5,10 +5,10 @@ public class Bauer extends Figur {
 
     public Bauer(int farbe) {
         super(farbe);
-        moveSet.addBauerMove(1,farbe);
-        moveSet.addBauerMove(-1,farbe);
-        moveSet.addBauerMove(0,farbe);
-        moveSet.addBauerMove(0,farbe*2);
+        moveSet.addMove(1,farbe);
+        moveSet.addMove(-1,farbe);
+        moveSet.addMove(0,farbe);
+        moveSet.addMove(0,farbe*2);
     }
 
     @Override
@@ -24,16 +24,23 @@ public class Bauer extends Figur {
     }
 
     @Override
+    public String getFenNotation() {
+        if(farbe == 1){
+            return "P";
+        } else {
+            return ("p");
+        }
+    }
+
+    @Override
     public String toString() {
-        return "B";
-        /*
+
         if (getFarbe() == -1){
             return "\u2659";
         } else {
             return "\u265F";
         }
 
-         */
     }
 
 }

@@ -23,16 +23,20 @@ public class Koenig extends Figur {
     public boolean getHasMoved() {
         return this.hasMoved;
     }
+    @Override
+    public String getFenNotation() {
+        if(farbe == 1){
+            return "K";
+        } else {
+            return "k";
+        }
+    }
 
     public String toString() {
-        return "K";
-        /*
         if (getFarbe() == -1){
             return "\u2654";
         } else {
             return "\u265A";
         }
-
-         */
     }
 }

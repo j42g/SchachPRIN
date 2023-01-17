@@ -22,15 +22,20 @@ public class Laeufer extends Figur {
         return false;
     }
 
+    @Override
+    public String getFenNotation() {
+        if(farbe == 1){
+            return "B";
+        } else {
+            return "b";
+        }
+    }
+
     public String toString() {
-        return "L";
-        /*
         if (getFarbe() == -1){
             return "\u2657";
         } else {
             return "\u265D";
         }
-
-         */
     }
 }
