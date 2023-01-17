@@ -34,12 +34,6 @@ public class Feld {
     }
 
     public String toFen() {
-        this.feld = new Quadrat[8][8];
-        for (int y = 0; y < 8; y++) {
-            for (int x = 0; x < 8; x++) {
-                feld[x][y] = new Quadrat();
-            }
-        }
         int temp = 0;
         String res = "";
         for (int y = 7; y >= 0; y--) {
@@ -81,11 +75,15 @@ public class Feld {
     }
 
     public Feld(String fen) {
-        System.out.println(fen);
         String[] fenparts = fen.split(" ");
         // board
-        int file;
         this.feld = new Quadrat[8][8];
+        for (int y = 0; y < 8; y++) {
+            for (int x = 0; x < 8; x++) {
+                feld[x][y] = new Quadrat();
+            }
+        }
+        int file;
         String[] ranks = fenparts[0].split("/");
         for (int rank = 0; rank < ranks.length; rank++) {
             file = 0;
