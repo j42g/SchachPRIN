@@ -11,13 +11,9 @@ public class Main {
 
     public static void main(String[] args) {
 
-        Feld f = new Feld();
-        System.out.println(f.viewFrom(Feld.WEISS));
-        System.out.println(f.viewFrom(Feld.SCHWARZ));
-
-        /*Client c = new Client();
+        Client c = new Client();
         Thread Tc = new Thread(c);
-        Tc.start();*/
+        Tc.start();
 
     }
 }

@@ -128,9 +128,9 @@ public class SchachSpiel implements Runnable {
     }
 
     public synchronized void leaveGame(ClientHandler client) {
-        if(client == white || client == black){
+        if(client.equals(white) || client.equals(black)){
             playerCount--;
-            if (white == client) {
+            if (white.equals(client)) {
                 white = null;
             } else {
                 black = null;
@@ -176,6 +176,16 @@ public class SchachSpiel implements Runnable {
         return this.uuid;
     }
 
+    public int getMyColor(ClientHandler asker) {
+        if (white.equals(asker)) {
+            return 1;
+        } else if (black.equals(asker)) {
+            return -1;
+        } else {
+            return -0;
+        }
+    }
+
     public String getFen() {
         return this.feld.toFen();
     }
@@ -193,5 +203,6 @@ public class SchachSpiel implements Runnable {
         black.setElo(neuRatingSchwarz);
         // TODO noch mehr stuff wahrscheinlich
     }
+
 
 }

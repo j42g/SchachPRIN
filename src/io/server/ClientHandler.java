@@ -227,14 +227,16 @@ public class ClientHandler extends Thread {
         this.game.forfeit(this);
     }
 
-    public void giveGame(SchachSpiel schachSpiel) {
-        this.game = schachSpiel;
-    }
+
 
     public void starteSpiel() {
         this.imSpiel = true;
-        out.println("{\"type\":\"fen\",\"fen\":\"" + game.getFen() + "\"}");
+        out.println(String.format("{\"type\":\"startgame\",\"fen\":\"" + game.getFen() + "\",\"color\":%d}", game.getMyColor(this)));
         this.game.start();
+    }
+
+    public void giveGame(SchachSpiel schachSpiel) {
+        this.game = schachSpiel;
     }
 
     public void endGame() {
@@ -246,7 +248,7 @@ public class ClientHandler extends Thread {
 
     public void requestMove() {
         this.amZug = true;
-        out.println("{\"type\":\"moverequest\"}");
+        out.println("{\"type\":\"moverequest\",\"fen\":\"" + game.getFen() + "\"}");
     }
 
     public long getUUID() {

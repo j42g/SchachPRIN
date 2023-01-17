@@ -4,6 +4,7 @@ import io.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import spiel.feld.Feld;
+import spiel.moves.FullMove;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -15,7 +16,7 @@ import java.util.Scanner;
 public class Client implements Runnable {
 
     private final String[] alleSpielmodi = new String[]{"RANDOM GEGNER", "PRIVATES SPIEL ERSTELLEN", "PRIVATEM SPIEL BEITRETEN"};
-    private final String[] alleBefehle = new String[]{"VERBINDEN", "EXIT", "TRENNEN", "ANMELDEN", "REGISTRIEREN", "ABMELDEN", "EXIT", "SPIELMODI", "SPIELREGELN", "RANGLISTE", "ZUG", "AUFGEBEN", "VERLASSEN"};
+    private final String[] alleBefehle = new String[]{"VERBINDEN", "EXIT", "TRENNEN", "ANMELDEN", "REGISTRIEREN", "ABMELDEN", "EXIT", "SPIELMODI", "SPIELREGELN", "RANGLISTE", "ZIEHEN", "AUFGEBEN", "VERLASSEN"};
     private final String spielRegeln = "Ziel des Spiels \nZiel eines jeden Spieles ist es, den gegnerischen König \nso anzugreifen, dass er nicht mehr verteidigt werden \nkann und somit im nächsten Zug geschlagen werden könnte.\nDiese Stellung heißt Matt. Das Ziel ist es also, den Gegner \nmattzusetzen, bevor er es tut.\n\nGrundlegende Regeln\nDer König ist die wichtigste Figur beim Schach. Ein Königs-\nangriff, auch Schach genannt, muss unverzüglich abgewehrt\nwerden. Das Spiel Schach wird auf einem Brett mit 64 Feldern\ngespielt. Ein Spieler bewegt die weißen Steine, der andere\ndie schwarzen. Es muss immer abwechselnd gezogen werden.\nWeiß beginnt. Nur gegnerische Steine können geschlagen wer-\nden. Ein geschlagener Stein ist aus dem Spiel.\n\nGangart der Figuren\n\nSpringer" + "\u2658 \n"+ "Der Springer kann wie im Bild angegeben ziehen. Im Gegen-\nsatz zu allen anderen Figuren kann er andere Steine über-\nspringen. Er zieht immer zwei Felder horizontal und ein Feld\nvertikal oder zwei Felder vertikal und ein Feld horizontal.\n\nLäufer"+"\u2657 \n"+ "Läufer ziehen diagonal beliebig weit über das Brett, wobei \nsie nicht über andere Figuren hinweg ziehen dürfen. Aufgrund\nder diagonalen Zugweise kann ein Läufer nur Felder gleicher\nFeldfarbe erreichen. Dies bedeutet eine Einschränkung seiner\nZugmöglichkeiten und damit eine Schwäche des Läufers.\n\nTurm"+ "\u2656\n"+ "Ein Turm kann sich sowohl horizontal als auch vertikal über\neine beliebige Anzahl von Feldern bewegen. Er darf auf jedes\nfreie Feld in jeder Richtung linear ziehen, ohne jedoch über\nandere Figuren zu springen. Die einzige Ausnahme davon bildet\ndie Rochade, in deren Verlauf der Turm einmalig über den König\nspringt.\n\nDame"+ "\u2655 \n"+"Die Dame darf auf jedes freie Feld derselben Linie, Reihe oder\nDiagonale ziehen, ohne jedoch über andere Figuren zu springen\nund vereint somit die Wirkung eines Turms und eines Läufers in\nsich. Damit ist die Dame die beweglichste aller Figuren.\n\nBauer"+ "\u2659 \n"+ "Der Bauer ist die einzige Figur, die nicht rückwärts ziehe\nkann. Ebenso ist der Bauer die einzige Figur, die anders\nschlägt als zieht: er schlägt immer diagonal, zieht aber\ngerade.\n\nKönig" +
             "\u2654 \n"+"Der König kann jeweils ein Feld in jede Richtung gehen.\nDamit kann er alle Felder des Schachbretts erreichen. Wegen\nseiner kleineSÜn Reichweite benötigt er dazu aber viele Züge.\nDer König darf kein bedrohtes Feld betreten.\n\nRochade\nBei einer Rochade tauschen König und Turm die Plätze. Der\nSpieler muss immer den König zuerst bewegen." +
             "Bei der kurzen-\noder auch kleinen Rochade von Weiß, zieht der König von e1\nnach g1 und der Turm von h1 nach f1. Für Schwarz entsprechend\nKönig e8-g8 + Turm h8-f8." +
@@ -42,6 +43,7 @@ public class Client implements Runnable {
     private boolean verbunden;
     private boolean eingeloggt;
     private boolean imSpiel;
+    private int farbe;
     private volatile boolean amZug;
 
     public Client() {
@@ -133,7 +135,7 @@ public class Client implements Runnable {
                         verfuegbareBefehle.add("VERLASSEN");
                         verfuegbareBefehle.add("AUFGEBEN");
                         if (amZug) {
-                            verfuegbareBefehle.add("[ZUG]");
+                            verfuegbareBefehle.add("ZIEHEN");
                         }
                     }
                 }
@@ -307,7 +309,7 @@ public class Client implements Runnable {
             System.out.println("AUSWAHL ERFOLGT");
             long uuid;
             while (true) {
-                System.out.println("UUID: ");
+                System.out.print("UUID: ");
                 input = s.nextLine();
                 if (input.equalsIgnoreCase("ABBRECHEN")) {
                     System.out.println("VORGANG ABGEBROCHEN");
@@ -407,8 +409,9 @@ public class Client implements Runnable {
     private void starteSpiel() {
         this.imSpiel = true;
         JSONObject fen = v.warteAufJSON();
-        if (fen.getString("type").equals("fen")) {
+        if (fen.getString("type").equals("startgame")) {
             this.feld = new Feld(fen.getString("fen"));
+            this.farbe = fen.getInt("color");
             System.out.println(feld);
             MoveListener ml = new MoveListener(this, v);
             Thread mlThread = new Thread(ml);
@@ -423,10 +426,7 @@ public class Client implements Runnable {
         this.amZug = true;
         JSONObject fen = v.warteAufJSON();
         if (fen.getString("type").equals("moverequest")) {
-            this.feld = new Feld(fen.getString("fen"));
-            System.out.println("SIE SIND AM ZUG. GEBEN SIE \"ZUG\"");
-            System.out.println(feld);
-
+            System.out.println("SIE SIND AM ZUG. GEBEN SIE \"ZIEHEN\" EIN");
         } else {
             System.out.println("Unbekannter Fehler");
         }
@@ -437,21 +437,28 @@ public class Client implements Runnable {
         Scanner s = new Scanner(System.in);
         String move;
         while (true) {
-            System.out.println("Geben sie einen Zug ein (long algebraic notation): ");
-            move = s.nextLine();
-            boolean isValid = false;
-            // TODO feld.checkIfValid(Move.parseMove(input))
-            if (isValid) {
-                // TODO feld.move(Move.parseMove(input))
-                break;
-            } else {
+            while (true) {
+                this.feld = new Feld(fen.getString("fen"));
+                System.out.println("SIE SIND AM ZUG. GEBEN SIE \"ZUG\"");
+                System.out.println(feld.viewFrom(this.farbe));
+                System.out.print("Zug: ");
+                move = s.nextLine();
+                if (FullMove.isValidMove(move)) {
+                    break;
+                }
                 System.out.println("Zugformat inkorrekt. (Ursprungsfeld)(Zielfeld)(opt. Promotionsfigur). Bsp: e2e4, f7f8q");
             }
+            if (feld.parseMove(move) != null) {
+                break;
+            }
+            System.out.println("Dieser Zug ist illegal");
         }
         v.sendeJSON(new JSONObject("{\"type\":\"move\",\"move\":\"" + move + "\"}"));
         JSONObject res = v.warteAufJSON();
         if (res.getString("type").equals("moveresponse")) {
             if (res.getBoolean("success")) {
+                feld.move(feld.parseMove(move));
+                System.out.println(feld.viewFrom(this.farbe));
                 amZug = false;
             } else {
                 System.out.println("Unbekannter Fehler");
@@ -459,7 +466,6 @@ public class Client implements Runnable {
         } else {
             System.out.println("Fehler im Protokoll");
         }
-
     }
 
     private JSONObject serverInput() {
