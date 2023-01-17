@@ -32,7 +32,7 @@ public class Laeufer extends Figur {
     }
 
     public String toString() {
-        if (getFarbe() == -1){
+        if (getFarbe() == 1){
             return "\u2657";
         } else {
             return "\u265D";

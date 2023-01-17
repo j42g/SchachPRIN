@@ -1,7 +1,10 @@
 package spiel.feld;
 
 import spiel.figur.*;
-import spiel.moves.*;
+import spiel.moves.AbsPosition;
+import spiel.moves.ActualMoves;
+import spiel.moves.FullMove;
+import spiel.moves.Move;
 
 import java.util.ArrayList;
 
@@ -33,23 +36,23 @@ public class Feld {
         String res = "";
         // board
         int temp = 0;
-        for (int y = 7; y >= 0; y--) {
-            for (int x = 0; x < 8; x++) {
-                if (feld[x][y].getFigur() == null) {
+        for (int rank = 7; rank >= 0; rank--) {
+            for (int file = 0; file < 8; file++) {
+                if (feld[file][rank].getFigur() == null) {
                     temp++;
                 } else {
                     if (temp != 0) {
                         res += temp;
                         temp = 0;
                     }
-                    res += feld[x][y].getFigur().toLetter();
+                    res += feld[file][rank].getFigur().toLetter();
                 }
             }
             if (temp != 0) {
                 res += temp;
                 temp = 0;
             }
-            if (y != 0) {
+            if (rank != 0) {
                 res += "/";
             }
         }
@@ -91,9 +94,9 @@ public class Feld {
         }
         int file;
         String[] ranks = fenparts[0].split("/");
-        for (int rank = 0; rank < ranks.length; rank++) {
+        for (int rank = 0; rank < 8; rank++) {
             file = 0;
-            for (char c : ranks[7-rank].toCharArray()) {
+            for (char c : ranks[7 - rank].toCharArray()) {
                 if ("rnbqkpRNBQKP".indexOf(c) != -1) {
                     feld[file][rank] = new Quadrat(Figur.fromString(c));
                     file++;
@@ -122,11 +125,12 @@ public class Feld {
         this.moveCount = Integer.parseInt(fenparts[5]);
 
     }
-    public Feld(boolean a){
+
+    public Feld(boolean a) {
         this.feld = new Quadrat[8][8];
-        for(int x = 0; x<8;x++){
-            for(int y = 0; y<8;y++){
-                feld[x][y]=new Quadrat();
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; y < 8; y++) {
+                feld[x][y] = new Quadrat();
             }
         }
     }
@@ -142,8 +146,6 @@ public class Feld {
     }
 
 
-
-
     public boolean threeFoldRepetition() {
         int lastIndex = moveRecord.size() - 1;
         if (moveRecord.size() >= 12) {
@@ -155,30 +157,31 @@ public class Feld {
     public boolean fiftyMoveRuleExceeded() {
         return fiftyMoveRule >= 50;
     }
-    public boolean insuficcientMaterial(){
+
+    public boolean insuficcientMaterial() {
         int[] springerlaeufer = new int[3]; //index 0 zählt springer, index 1 schwarze läufer und index 2 weiße läufer, die zweite dimension symbolisiert die farbe, 0 ist weiß und 1 schwarz
-        for(int x = 0; x<8;x++){
-            for(int y = 0; y<8;y++){
-                if(feld[x][y].getFigur()!=null){
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; y < 8; y++) {
+                if (feld[x][y].getFigur() != null) {
                     Figur box = feld[x][y].getFigur();
-                    if(box instanceof Bauer || box instanceof Dame || box instanceof Turm){
+                    if (box instanceof Bauer || box instanceof Dame || box instanceof Turm) {
                         return false;
                     }
-                    if(box instanceof Springer){
-                        if(box.getFarbe()==1) {
+                    if (box instanceof Springer) {
+                        if (box.getFarbe() == 1) {
                             springerlaeufer[0]++;
                         }
                     }
-                    if(box instanceof Laeufer){
-                       springerlaeufer[(x+y)%2+1]++;
+                    if (box instanceof Laeufer) {
+                        springerlaeufer[(x + y) % 2 + 1]++;
                     }
                 }
             }
         }
-        if(springerlaeufer[0]>1){ //zu viele Springer
+        if (springerlaeufer[0] > 1) { //zu viele Springer
             return false;
         }
-        if(springerlaeufer[1]+springerlaeufer[2]>2 || (springerlaeufer[1] == 1 && springerlaeufer[2] == 1)){
+        if (springerlaeufer[1] + springerlaeufer[2] > 2 || (springerlaeufer[1] == 1 && springerlaeufer[2] == 1)) {
             return false;
         }
         return true;
@@ -455,6 +458,7 @@ public class Feld {
     public void setEnPassant(AbsPosition enPassant) {
         this.enPassant = enPassant;
     }
+
     public AbsPosition getKingPos(int color) {
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
@@ -476,39 +480,23 @@ public class Feld {
 
     @Override
     public String toString() {
-        String res = "";
-        int bmk = 8;
-        int temp = 7;
-        for (int i = 7; i > -1; i--) {
-
-
-            for (int j = 0; j < 8; j++) {
-                if (feld[j][i] != null) {
-                    res += "|" +feld[j][i];
-
-                    if (j==7){
-                        res += "|";
-                        if (i ==0){
-                            res += "1";
-                            res += "\n";
-                            res += "|A|B|C|D|E|F|G|H|" ;
-                        }
-                    }
-                    if(j ==7){
-                        if(i==temp) {
-                            if (bmk > 1) {
-                                res += bmk + "";
-                                bmk--;
-                                temp--;
-                            }
-                        }
-
-                    }
+        StringBuilder board = new StringBuilder();
+        for (int rank = 7; rank >= 0; rank--) {
+            board.append("|");
+            for (int file = 0; file < 8; file++) {
+                if (feld[file][rank].hasFigur()) {
+                    board.append(feld[file][rank].getFigur().toString())
+                            .append("|");
+                } else {
+                    board.append(" |");
                 }
             }
-            res += "\n";
+            board.append(rank + 1)
+                    .append("\n");
+
         }
-        return res;
+        board.append("| a| b| c| d| e| f| g| h");
+        return board.toString();
     }
 
 }

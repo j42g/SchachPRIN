@@ -10,11 +10,12 @@ import spiel.moves.Move;
 public class Main {
 
     public static void main(String[] args) {
-        Gamehandler g = new Gamehandler();
-        /*
-        Client c = new Client();
-        Thread Tc = new Thread(c);
-        Tc.start();
-    */
+
+        Feld f = new Feld();
+        System.out.println(f.toFen());
+        System.out.println(f);
+        System.out.println(f.getFigAtPos(new AbsPosition("d8")));
+
+
     }
 }

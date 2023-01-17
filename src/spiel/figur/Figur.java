@@ -23,6 +23,7 @@ public abstract class Figur {
     public abstract void moved();
 
     public abstract boolean getHasMoved();
+
     public abstract String toLetter();
 
     public static Figur fromString(char piece) {
