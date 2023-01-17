@@ -11,12 +11,10 @@ public class Main {
 
     public static void main(String[] args) {
 
-        /*Client c = new Client();
+        Client c = new Client();
         Thread Tc = new Thread(c);
-        Tc.start();*/
+        Tc.start();
 
-        Feld f = new Feld();
-        f.move(f.parseMove("e2e4"));
 
     }
 }

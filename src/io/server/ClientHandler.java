@@ -252,7 +252,7 @@ public class ClientHandler extends Thread {
     public void move(JSONObject request) {
         this.game.setMove(request.getString("move"));
         this.amZug = false;
-        out.println("{\"type\":\"movereponse\",\"success\":true}");
+        out.println("{\"type\":\"moveresponse\",\"success\":true}");
     }
 
     public long getUUID() {
