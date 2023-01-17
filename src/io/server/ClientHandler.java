@@ -113,7 +113,7 @@ public class ClientHandler extends Thread {
             }
         }
     }
-    
+
     public void login(JSONObject request) {
         if (!server.existiertNutzer(request)) { // benutzer existiert nicht
             out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: BENUTZER EXISTIERT NICHT\"}");
@@ -267,10 +267,8 @@ public class ClientHandler extends Thread {
 
     public void terminate() { // diese funktion heißt client schließt die Verbindung
         this.shouldRun = false;
-        if (this.game != null) {
-            this.game.leaveGame(this);
-        }
         if (imSpiel) {
+            this.game.leaveGame(this);
             this.benutzer.setUuidOffenesSpiel(this.game.getUUID());
         }
         // TODO implementieren
