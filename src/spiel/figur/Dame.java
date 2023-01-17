@@ -24,6 +24,15 @@ public class Dame extends Figur {
         return false;
     }
 
+    @Override
+    public String getFenNotation() {
+        if(farbe == 1){
+            return "Q";
+        } else {
+            return "q";
+        }
+    }
+
 
     public String toString() {
 

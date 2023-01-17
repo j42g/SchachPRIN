@@ -24,6 +24,15 @@ public class Bauer extends Figur {
     }
 
     @Override
+    public String getFenNotation() {
+        if(farbe == 1){
+            return "P";
+        } else {
+            return ("p");
+        }
+    }
+
+    @Override
     public String toString() {
 
         if (getFarbe() == -1){

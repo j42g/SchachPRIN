@@ -38,7 +38,6 @@ public class Gamehandler {
             System.out.print("move: ");
             temp = s.nextLine();
             FullMove a = feld.parseMove(temp);
-            System.out.println(a);
             if(a==null){
                 System.out.println("Invalid move");
                 continue;

@@ -26,6 +26,15 @@ public class Springer extends Figur {
         return false;
     }
 
+    @Override
+    public String getFenNotation() {
+        if(farbe == 1){
+            return "N";
+        } else {
+            return "n";
+        }
+    }
+
     public String toString() {
         if (getFarbe() == -1){
             return"\u2658";

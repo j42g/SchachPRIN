@@ -7,16 +7,18 @@ public class FullMove {
     private AbsPosition pos;
     private Move mov;
     private String longNotation;
+    private String promotionpiece;
     public FullMove(AbsPosition pos, Move mov, Feld a){
         this.pos = pos;
         this.mov = mov;
-        if(a.getFigAtPos(pos)!=null){
-                if(!(a.getFigAtPos(pos) instanceof Bauer)){
-                    this.longNotation = pos.toString()+pos.addMove(mov).toString();
-                } else {
-                    this.longNotation = pos.toString()+pos.addMove(mov).toString()+":";
-                }
+        if(a.getFigAtPos(pos)==null){
+            System.out.println("Fullmove constructor error, no Figure at position");
         }
+        this.promotionpiece = "";
+    }
+    public FullMove(AbsPosition pos, Move mov, Feld a, String promo){
+        this(pos,mov,a);
+        this.promotionpiece = promo;
     }
 
     public AbsPosition getPos() {
@@ -29,6 +31,11 @@ public class FullMove {
 
     @Override
     public String toString() {
-        return longNotation;
+        if(promotionpiece != null){
+            return pos.toString()+pos.addMove(mov).toString()+promotionpiece;
+        } else {
+            return pos.toString()+pos.addMove(mov).toString();
+        }
+
     }
 }
