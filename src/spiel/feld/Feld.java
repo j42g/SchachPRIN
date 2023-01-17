@@ -18,7 +18,6 @@ public class Feld {
     private int fiftyMoveRule;
     private Figur promotionPiece;
     private int moveCount;
-    private int gameState;
     private boolean QWCastling = true;
     private boolean QBCastling = true;
     private boolean KWCastling = true;
@@ -252,8 +251,12 @@ public class Feld {
     public boolean move(AbsPosition a, Move b) {
         if (isValidMove(new FullMove(a, b, this))) {
             updateFiftyMoveRule(a,b);
+            updateCastlingRights();
             if (getFigAtPos(a) instanceof Koenig && Math.abs(b.getxOffset()) == 2) {
                 resetEnPassant();
+                if(getFigAtPos(a).getFarbe() == -1){
+                    moveCount++;
+                }
                 return castle(a, b);
             } else {
                 if (getFigAtPos(a) instanceof Bauer && getFigAtPos(a.addMove(b)) == null && b.getxOffset() != 0) { //checks if the move is en passant
@@ -268,11 +271,28 @@ public class Feld {
                 setFigAtPos(a.addMove(b), getFigAtPos(a));
                 setFigAtPos(a, null);
                 getFigAtPos(a.addMove(b)).moved();
+                if(getFigAtPos(a).getFarbe() == -1){
+                    moveCount++;
+                }
                 playerTurn = -playerTurn;
                 return true;
             }
         }
         return false;
+    }
+    private void updateCastlingRights(){
+        if(KWCastling){
+            KWCastling = kingSideCastlePossible(1);
+        }
+        if(KBCastling){
+            KBCastling = kingSideCastlePossible(-1);
+        }
+        if(QWCastling){
+            QWCastling = queenSideCastlePossible(1);
+        }
+        if(QBCastling){
+            QBCastling = queenSideCastlePossible(-1);
+        }
     }
     private void updateFiftyMoveRule(AbsPosition a, Move b){
         if (getFigAtPos(a) instanceof Bauer || getFigAtPos(a.addMove(b)) != null) {
