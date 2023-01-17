@@ -30,30 +30,16 @@ public class Feld {
 
 
     public Feld() {
-        playerTurn = 1;
-        moveRecord = new ArrayList<FullMove>();
-        feld = new Quadrat[8][8];
+        this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    }
+
+    public String toFen() {
+        this.feld = new Quadrat[8][8];
         for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
                 feld[x][y] = new Quadrat();
             }
         }
-        Figur[] reihenfolgeW = new Figur[]{new Turm(WEISS), new Springer(WEISS), new Laeufer(WEISS), new Dame(WEISS), new Koenig(WEISS), new Laeufer(WEISS), new Springer(WEISS), new Turm(WEISS)};
-        //Figur[] reihenfolgeW = new Figur[]{new Turm(WEISS), null, null, null, new Koenig(WEISS), new Laeufer(WEISS), new Springer(WEISS), new Turm(WEISS)}; //queencastle setup
-        Figur[] reihenfolgeS = new Figur[]{new Turm(SCHWARZ), new Springer(SCHWARZ), new Laeufer(SCHWARZ), new Dame(SCHWARZ), new Koenig(SCHWARZ), new Laeufer(SCHWARZ), new Springer(SCHWARZ), new Turm(SCHWARZ)};
-
-        for (int x = 0; x < 8; x++) { // schwarz
-            feld[x][7] = new Quadrat(reihenfolgeS[x]);
-            feld[x][6] = new Quadrat(new Bauer(SCHWARZ));
-        }
-
-        for (int x = 0; x < 8; x++) { // weiß
-            feld[x][1] = new Quadrat(new Bauer(WEISS));
-            feld[x][0] = new Quadrat(reihenfolgeW[x]);
-        }
-    }
-
-    public String toFenNot() {
         int temp = 0;
         String res = "";
         for (int y = 7; y >= 0; y--) {
@@ -65,7 +51,7 @@ public class Feld {
                         res += temp;
                         temp = 0;
                     }
-                    res += feld[x][y].getFigur().getFenNotation();
+                    res += feld[x][y].getFigur().toLetter();
                 }
             }
             if (temp != 0) {
@@ -79,7 +65,6 @@ public class Feld {
         return res;
     }
 
-
     public boolean isInCheck(int color) {
         return getAllPossibleMoves(-color).contains(getKingPos(color)); //checks if king is in a position which an enemy piece can reach
     }
@@ -87,7 +72,6 @@ public class Feld {
     public boolean isMate(int color) {
         return getAllPossibleMoves(color).size() == 0 && isInCheck(color); //checks if king is in checks and no moves change that
     }
-
 
     public Feld(ArrayList<FullMove> a) {
         this();
@@ -97,6 +81,7 @@ public class Feld {
     }
 
     public Feld(String fen) {
+        System.out.println(fen);
         String[] fenparts = fen.split(" ");
         // board
         int file;
@@ -156,18 +141,10 @@ public class Feld {
                                 return null;
                             }
                             switch (a.charAt(4)) {
-                                case 'Q' -> {
-                                    promotionPiece = new Dame(getFigAtPos(origin).getFarbe());
-                                }
-                                case 'N' -> {
-                                    promotionPiece = new Springer(getFigAtPos(origin).getFarbe());
-                                }
-                                case 'B' -> {
-                                    promotionPiece = new Laeufer(getFigAtPos(origin).getFarbe());
-                                }
-                                case 'R' -> {
-                                    promotionPiece = new Turm(getFigAtPos(origin).getFarbe());
-                                }
+                                case 'Q' -> promotionPiece = new Dame(getFigAtPos(origin).getFarbe());
+                                case 'N' -> promotionPiece = new Springer(getFigAtPos(origin).getFarbe());
+                                case 'B' -> promotionPiece = new Laeufer(getFigAtPos(origin).getFarbe());
+                                case 'R' -> promotionPiece = new Turm(getFigAtPos(origin).getFarbe());
                                 default -> {
                                     return null;
                                 }
@@ -184,10 +161,8 @@ public class Feld {
                 }
             }
         }
-
         return null;
     }
-
 
     public void move(FullMove a) {
         move(a.getPos(), a.getMov());
@@ -241,7 +216,6 @@ public class Feld {
         }
         return false;
     }
-
 
     public boolean queenSideCastlePossible(int color) {
         if (color == 1) {

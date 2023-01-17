@@ -1,6 +1,7 @@
 package spiel.moves;
 
 import spiel.feld.Feld;
+import spiel.feld.Quadrat;
 import spiel.figur.Bauer;
 
 public class FullMove {
@@ -36,6 +37,17 @@ public class FullMove {
         } else {
             return pos.toString()+pos.addMove(mov).toString();
         }
+    }
 
+    public static boolean isValidNotation(String move) {
+        if (move.length() != 4 && move.length() != 5) { // falsche laenge
+            return false;
+        }
+        if(move.length() == 5) {
+            if("kbrq".indexOf(move.charAt(4)) == -1) { // promotion piece falsch
+                return false;
+            }
+        }
+        return Quadrat.isValidQuadrat(move.substring(0, 3)) && Quadrat.isValidQuadrat(move.substring(3, 5));
     }
 }

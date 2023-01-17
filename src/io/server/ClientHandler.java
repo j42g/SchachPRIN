@@ -233,6 +233,8 @@ public class ClientHandler extends Thread {
 
     public void starteSpiel() {
         this.imSpiel = true;
+        out.println("{\"type\":\"fen\",\"fen\":\"" + game.getFen() + "\"}");
+        this.game.start();
     }
 
     public void endGame() {

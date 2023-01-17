@@ -23,7 +23,7 @@ public abstract class Figur {
     public abstract void moved();
 
     public abstract boolean getHasMoved();
-    public abstract String getFenNotation();
+    public abstract String toLetter();
 
     public static Figur fromString(char piece) {
         int farbe = Character.isUpperCase(piece) ? 1 : -1;

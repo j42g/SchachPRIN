@@ -18,7 +18,7 @@ public class Turm extends Figur {
     }
 
     @Override
-    public String getFenNotation() {
+    public String toLetter() {
         if (farbe == 1) {
             return "R";
         } else {
