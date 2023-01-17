@@ -407,10 +407,33 @@ public class Feld {
     @Override
     public String toString() {
         String res = "";
+        int bmk = 1;
+        int temp = 7;
         for (int i = 7; i > -1; i--) {
+
+
             for (int j = 0; j < 8; j++) {
                 if (feld[j][i] != null) {
-                    res += feld[j][i];
+                    res += "|" +feld[j][i];
+
+                    if (j==7){
+                        res += "|";
+                        if (i ==0){
+                            res += "8";
+                            res += "\n";
+                            res += "|A|B|C|D|E|F|G|H|";
+                        }
+                    }
+                    if(j ==7){
+                        if(i==temp) {
+                            if (bmk < 8) {
+                                res += bmk + "";
+                                bmk++;
+                                temp--;
+                            }
+                        }
+
+                    }
                 }
             }
             res += "\n";
