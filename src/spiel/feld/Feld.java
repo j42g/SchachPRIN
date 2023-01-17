@@ -415,7 +415,7 @@ public class Feld {
     @Override
     public String toString() {
         String res = "";
-        int bmk = 1;
+        int bmk = 8;
         int temp = 7;
         for (int i = 7; i > -1; i--) {
 
@@ -427,16 +427,16 @@ public class Feld {
                     if (j==7){
                         res += "|";
                         if (i ==0){
-                            res += "8";
+                            res += "1";
                             res += "\n";
-                            res += "|A|B|C|D|E|F|G|H|";
+                            res += "|A|B|C|D|E|F|G|H|" ;
                         }
                     }
                     if(j ==7){
                         if(i==temp) {
-                            if (bmk < 8) {
+                            if (bmk > 1) {
                                 res += bmk + "";
-                                bmk++;
+                                bmk--;
                                 temp--;
                             }
                         }
