@@ -241,9 +241,9 @@ public class Feld {
             ArrayList<AbsPosition> a = checker.computeMoves(new AbsPosition(4, color));
             if (a.contains(new AbsPosition(3, color))) {
                 if (color == 0) {
-                    return true & QWCastling;
+                    return QWCastling;
                 } else {
-                    return true & QBCastling;
+                    return QBCastling;
                 }
             }
         }
@@ -260,9 +260,9 @@ public class Feld {
             ArrayList<AbsPosition> a = checker.computeMoves(new AbsPosition(4, color));
             if (a.contains(new AbsPosition(5, color))) {
                 if (color == 0) {
-                    return true & KWCastling;
+                    return KWCastling;
                 } else {
-                    return true & KBCastling;
+                    return KBCastling;
                 }
             }
         }
@@ -299,10 +299,7 @@ public class Feld {
         Feld test = copyFeld();
         int color = test.getFigAtPos(fullMove.getPos()).getFarbe();
         test.noTestMove(fullMove);
-        if (test.isInCheck(color)) {
-            return true;
-        }
-        return false;
+        return test.isInCheck(color);
     }
 
     public void noTestMove(FullMove fullMove) { //moves a figure with almost no checks attached for simulating if king is in check after own move (illegal)
@@ -315,9 +312,7 @@ public class Feld {
             side = 7;
         }
         if (feld[side][color].hasFigur()) {
-            if (!feld[side][color].getFigur().getHasMoved() && feld[side][color].getFigur() instanceof Turm) {
-                return false;
-            }
+            return feld[side][color].getFigur().getHasMoved() || !(feld[side][color].getFigur() instanceof Turm);
         }
         return true;
     }
@@ -325,9 +320,7 @@ public class Feld {
     public boolean kinghasMoved(int color) {
         if (feld[4][color].hasFigur()) {
             if (feld[4][color].getFigur() instanceof Koenig) {
-                if (!feld[4][color].getFigur().getHasMoved()) {
-                    return false;
-                }
+                return feld[4][color].getFigur().getHasMoved();
             }
         }
         return true;

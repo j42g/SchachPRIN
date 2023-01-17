@@ -2,7 +2,6 @@ package spiel.moves;
 
 import spiel.feld.Feld;
 import spiel.feld.Quadrat;
-import spiel.figur.Bauer;
 
 public class FullMove {
     private AbsPosition pos;
@@ -39,7 +38,7 @@ public class FullMove {
         }
     }
 
-    public static boolean isValidNotation(String move) {
+    public static boolean isValidMove(String move) {
         if (move.length() != 4 && move.length() != 5) { // falsche laenge
             return false;
         }
