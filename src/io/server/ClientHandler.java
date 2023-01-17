@@ -156,24 +156,27 @@ public class ClientHandler extends Thread {
         int gamemode = request.getInt("mode");
         switch (gamemode) {
             case 0 -> { // random game
-                if (server.lookingForOpponent(this)) { // gegner verfügbar
+                if (server.isQueueReady()) { // gegner verfügbar
                     out.println("{\"type\":\"modeconfirm\",\"mode\":0,\"ready\":true}");
                     starteSpiel();
+                    server.queueGame(this);
                 } else { // muss warten
                     out.println("{\"type\":\"modeconfirm\",\"mode\":0,\"ready\":false}");
-                    queue(out, in);
                     starteSpiel();
+                    queue(out, in);
                 }
             }
             case 1 -> { // private lobby erstellt
                 server.waitingPrivate(this);
                 out.println(String.format("{\"type\":\"modeconfirm\",\"mode\":1,\"uuid\":%d}", this.game.getUUID()));
                 starteSpiel();
+
             }
             case 2 -> { // privater lobby beitreten
-                if (server.joinPrivate(this, request.getLong("uuid"))) {
+                if (server.doesPrivateExist(request.getLong("uuid"))) {
                     out.println("{\"type\":\"modeconfirm\",\"mode\":2}");
                     starteSpiel();
+                    server.createPrivate(this, request.getLong("uuid"));
                 } else {
                     out.println("{\"type\":\"modedeny\",\"error\":\"ES EXISTIERT KEIN SPIEL MIT DIESER UUID\"}");
                 }
@@ -226,7 +229,6 @@ public class ClientHandler extends Thread {
 
     public void giveGame(SchachSpiel schachSpiel) {
         this.game = schachSpiel;
-        out.println("{\"type\":\"fen\",\"fen\":\"" + game.getFen() + "\"}");
     }
 
     public void starteSpiel() {
