@@ -1,10 +1,7 @@
 package spiel.feld;
 
 import spiel.figur.*;
-import spiel.moves.AbsPosition;
-import spiel.moves.ActualMoves;
-import spiel.moves.FullMove;
-import spiel.moves.Move;
+import spiel.moves.*;
 
 import java.util.ArrayList;
 
@@ -36,23 +33,23 @@ public class Feld {
         String res = "";
         // board
         int temp = 0;
-        for (int rank = 7; rank >= 0; rank--) {
-            for (int file = 0; file < 8; file++) {
-                if (feld[file][rank].getFigur() == null) {
+        for (int y = 7; y >= 0; y--) {
+            for (int x = 0; x < 8; x++) {
+                if (feld[x][y].getFigur() == null) {
                     temp++;
                 } else {
                     if (temp != 0) {
                         res += temp;
                         temp = 0;
                     }
-                    res += feld[file][rank].getFigur().toLetter();
+                    res += feld[x][y].getFigur().toLetter();
                 }
             }
             if (temp != 0) {
                 res += temp;
                 temp = 0;
             }
-            if (rank != 0) {
+            if (y != 0) {
                 res += "/";
             }
         }
@@ -252,49 +249,20 @@ public class Feld {
         move(a.getPos(), a.getMov());
     }
 
-    public void move(AbsPosition a, AbsPosition b) {
-        move(a, new AbsPosition(a.getX() - b.getX(), a.getY() - b.getY()));
-    }
-
     public boolean move(AbsPosition a, Move b) {
         if (isValidMove(new FullMove(a, b, this))) {
-            if (getFigAtPos(a) instanceof Bauer || getFigAtPos(a.addMove(b)) != null) {
-                fiftyMoveRule = 0;
-            }
-            if (getFigAtPos(a).getFarbe() == -1 && !(getFigAtPos(a) instanceof Bauer)) {
-                fiftyMoveRule++;
-            }
+            updateFiftyMoveRule(a,b);
             if (getFigAtPos(a) instanceof Koenig && Math.abs(b.getxOffset()) == 2) {
-                if (b.getxOffset() > 0) {
-                    int rookXPos = 7;
-                    setFigAtPos(a.addMove(b), getFigAtPos(a));
-                    setFigAtPos(a, null);
-                    getFigAtPos(a.addMove(b)).moved();
-                    setFigAtPos(a.addMove(new Move(b.getxOffset() / 2, 0)), getFigAtPos(new AbsPosition(rookXPos, a.getY())));
-                    setFigAtPos(new AbsPosition(rookXPos, a.getY()), null);
-                    enPassant = null;
-                    playerTurn = -playerTurn;
-                    return true;
-                } else {
-                    int rookXPos = 0;
-                    setFigAtPos(a.addMove(b), getFigAtPos(a));
-                    setFigAtPos(a, null);
-                    getFigAtPos(a.addMove(b)).moved();
-                    setFigAtPos(a.addMove(new Move(b.getxOffset() / 2, 0)), getFigAtPos(new AbsPosition(rookXPos, a.getY())));
-                    setFigAtPos(new AbsPosition(rookXPos, a.getY()), null);
-                    enPassant = null;
-                    playerTurn = -playerTurn;
-                    return true;
-                }
+                resetEnPassant();
+                return castle(a, b);
             } else {
-                if (getFigAtPos(a) instanceof Bauer && getFigAtPos(a.addMove(b)) == null && b.getxOffset() != 0) {
-                    setFigAtPos(a.addMove(new Move(b.getxOffset(), 0)), null);
-
+                if (getFigAtPos(a) instanceof Bauer && getFigAtPos(a.addMove(b)) == null && b.getxOffset() != 0) { //checks if the move is en passant
+                    setFigAtPos(a.addMove(new Move(b.getxOffset(), 0)), null); //delets pawn that is killed with en passant
                 }
-                if (!(getFigAtPos(a) instanceof Bauer && Math.abs(b.getyOffset()) != 2)) {
-                    enPassant = null;
+                if (!(getFigAtPos(a) instanceof Bauer && Math.abs(b.getyOffset()) != 2)) { //places the en passant square in the appropriate place
+                    resetEnPassant();
                 }
-                if (getFigAtPos(a) instanceof Bauer && (a.addMove(b).getY() == 7 || a.addMove(b).getY() == 0)) {
+                if (getFigAtPos(a) instanceof Bauer && (a.addMove(b).getY() == 7 || a.addMove(b).getY() == 0)) { //replaces the pawn with the current promotionpiece
                     setFigAtPos(a, promotionPiece);
                 }
                 setFigAtPos(a.addMove(b), getFigAtPos(a));
@@ -306,7 +274,27 @@ public class Feld {
         }
         return false;
     }
-
+    private void updateFiftyMoveRule(AbsPosition a, Move b){
+        if (getFigAtPos(a) instanceof Bauer || getFigAtPos(a.addMove(b)) != null) {
+            fiftyMoveRule = 0;
+        }
+        if (getFigAtPos(a).getFarbe() == -1 && !(getFigAtPos(a) instanceof Bauer)) {
+            fiftyMoveRule++;
+        }
+    }
+    private boolean castle(AbsPosition a, Move b) {
+        int rookXPos = 0;
+        if (b.getxOffset() > 0) {
+            rookXPos = 7;
+        }
+        setFigAtPos(a.addMove(b), getFigAtPos(a));
+        setFigAtPos(a, null);
+        getFigAtPos(a.addMove(b)).moved();
+        setFigAtPos(a.addMove(new Move(b.getxOffset() / 2, 0)), getFigAtPos(new AbsPosition(rookXPos, a.getY())));
+        setFigAtPos(new AbsPosition(rookXPos, a.getY()), null);
+        playerTurn = -playerTurn;
+        return true;
+    }
 
     public boolean queenSideCastlePossible(int color) {
         if (color == 1) {
@@ -404,10 +392,6 @@ public class Feld {
     }
 
 
-    public AbsPosition getEnPassant() {
-        return enPassant;
-    }
-
     public ArrayList<FullMove> getMoveRecord() {
         return moveRecord;
     }
@@ -455,8 +439,16 @@ public class Feld {
         feld[pos.getX()][pos.getY()].addFigur(fig);
     }
 
+    public AbsPosition getEnPassant() {
+        return enPassant;
+    }
+
     public void setEnPassant(AbsPosition enPassant) {
         this.enPassant = enPassant;
+    }
+
+    public void resetEnPassant(){
+        this.enPassant = null;
     }
 
     public AbsPosition getKingPos(int color) {
