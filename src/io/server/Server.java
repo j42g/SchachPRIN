@@ -75,7 +75,7 @@ public class Server implements Runnable {
             Random gen = new Random();
             do {
                 id = gen.nextLong();
-            } while (!isClientUUIDFree(id) && id > -1);
+            } while (!isClientUUIDFree(id) || id < 0);
             ClientHandler sgt = new ClientHandler(client1, id);
             sgt.start();
             this.threads.add(sgt);
@@ -168,7 +168,11 @@ public class Server implements Runnable {
         return bm.registrieren(benutzer.getString("name"), passwordArr);
     }
 
-    public synchronized boolean lookingForOpponent(ClientHandler client) {
+    public synchronized boolean isQueueReady() {
+        return waitingClient != null;
+    }
+
+    public synchronized boolean queueGame(ClientHandler client) {
         if (waitingClient == null) {
             Logger.log("server", client.getUUID() + "tritt Queue bei");
             waitingClient = client;
@@ -186,6 +190,15 @@ public class Server implements Runnable {
         } else {
             Logger.log("server", "Client-" + client.getUUID() + " konnte nicht aus der Queue entfernt werden");
         }
+    }
+
+    public synchronized boolean doesPrivateExist(long uuid) {
+        for (int i = 0; i < waitingPrivate.size(); i++) {
+            if (waitingPrivate.get(i).getUUID() == uuid) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public synchronized boolean joinPrivate(ClientHandler client, long uuid) {
@@ -221,6 +234,8 @@ public class Server implements Runnable {
         }
         return false;
     }
+
+
 
     public void stoppe() {
         this.shouldRun = false;

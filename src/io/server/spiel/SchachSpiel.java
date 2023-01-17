@@ -3,27 +3,33 @@ package io.server.spiel;
 import io.Logger;
 import io.server.ClientHandler;
 import spiel.feld.Feld;
+import spiel.feld.Quadrat;
+import spiel.moves.FullMove;
 
 public class SchachSpiel implements Runnable {
 
     // Elo dingens
     private static final int k = 20;
 
+    private volatile boolean started;
     private volatile boolean shouldRun;
     private volatile int playerCount;
     private volatile String move; // muss noch zum Move Objekt gemacht werden
 
     private long uuid;
     private Feld feld;
+    private boolean isWhiteMove;
     private ClientHandler white;
     private ClientHandler black;
-    private boolean isWhiteMove;
 
     public SchachSpiel(long uuid, ClientHandler a) { // private lobby wird erstellt
+        this.started = false;
         this.shouldRun = true;
-        this.uuid = uuid;
-        this.isWhiteMove = true;
         this.playerCount = 1;
+        this.uuid = uuid;
+        this.feld = new Feld();
+        this.isWhiteMove = true;
+
         this.move = null;
         if (Math.random() < 0.5) { // wer ist was
             this.white = a;
@@ -32,18 +38,17 @@ public class SchachSpiel implements Runnable {
             this.white = null;
             this.black = a;
         }
-        // threads informieren
+
         a.giveGame(this);
-        this.feld = new Feld();
-        // TODO weiß nach move fragen aka gameloop starten
-        Thread gameThread = new Thread(this);
-        gameThread.start();
     }
 
     public SchachSpiel(long uuid, ClientHandler a, ClientHandler b) {
+        this.started = false;
+        this.shouldRun = true;
+        this.playerCount = 2;
         this.uuid = uuid;
         this.isWhiteMove = true;
-        this.playerCount = 2;
+        this.feld = new Feld();
         this.move = null;
         if (Math.random() < 0.5) {
             this.white = a;
@@ -52,17 +57,12 @@ public class SchachSpiel implements Runnable {
             this.white = b;
             this.black = a;
         }
-        // threads informieren
         a.giveGame(this);
         b.giveGame(this);
-        // TODO feld generieren
-        // TODO weiß nach move fragen aka gameloop starten
-        Thread gameThread = new Thread(this);
-        gameThread.start();
     }
 
     public SchachSpiel(String json) {
-
+        // TODO
     }
 
     public synchronized boolean joinGame(ClientHandler client) {
@@ -84,6 +84,15 @@ public class SchachSpiel implements Runnable {
             endGame(-1);
         } else if (client.equals(black)) {
             endGame(1);
+        }
+    }
+
+    public synchronized void start() {
+        if (this.started) {
+            return;
+        } else {
+            this.started = true;
+            (new Thread(this)).start();
         }
     }
 
@@ -153,7 +162,8 @@ public class SchachSpiel implements Runnable {
         this.move = move;
     }
 
-    public void move(Number a) { // Move Objekt
+    public void move(FullMove a) { // Move Objekt
+
         //this.feld.move(null, null); // Moveobject
     }
 
@@ -167,9 +177,7 @@ public class SchachSpiel implements Runnable {
     }
 
     public String getFen() {
-        // this.feld.getFen();
-        // TODO
-        return "";
+        return this.feld.toFen();
     }
 
     private void endGame(int endCode) { // -1 Schwarz gewonnen, 0 Unentschieden, 1 Weiss gewonnen

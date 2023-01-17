@@ -27,4 +27,11 @@ public class Quadrat {
         }
     }
 
+    public static boolean isValidQuadrat(String sq) {
+        if (sq.length() == 2) {
+            return "abcdefgh".indexOf(sq.charAt(0)) != -1 && "12345678".indexOf(sq.charAt(1)) != -1;
+        }
+        return false;
+    }
+
 }

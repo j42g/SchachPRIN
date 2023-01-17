@@ -226,12 +226,14 @@ public class Client implements Runnable {
                 benutzername = s.nextLine();
                 if (benutzername.equalsIgnoreCase("ABBRECHEN")) {
                     System.out.println("VORGANG ABGEBROCHEN");
+                    Logger.log("client", "Registrierungsvorgange abgebrochen");
                     return;
                 }
                 System.out.println("WÄHLEN SIE EIN PASSWORT");
                 password = s.nextLine();
                 if (password.equalsIgnoreCase("ABBRECHEN")) {
                     System.out.println("VORGANG ABGEBROCHEN");
+                    Logger.log("client", "Registrierungsvorgange abgebrochen");
                     return;
                 }
                 System.out.println("Benutzername:\t" + benutzername + "\nPasswort:\t" + password);
@@ -241,6 +243,7 @@ public class Client implements Runnable {
             Logger.log("client", "Sende Registrierungsdaten");
             v.sendeJSON(new JSONObject(String.format("{\"type\":\"register\",\"name\":\"%s\",\"password\":%s}", benutzername, hashedpw)));
             antwort = serverInput();
+            Logger.log("client", "Antwort empfangen");
             if (antwort.getString("type").equals("authresponse")) {
                 if (antwort.getBoolean("success")) {
                     Logger.log("client", "Registrierung erfolgreich");
@@ -406,21 +409,24 @@ public class Client implements Runnable {
         JSONObject fen = v.warteAufJSON();
         if (fen.getString("type").equals("fen")) {
             this.feld = new Feld(fen.getString("fen"));
+            System.out.println(feld);
+            MoveListener ml = new MoveListener(this, v);
+            Thread mlThread = new Thread(ml);
+            mlThread.start();
         } else {
             Logger.log("Client", "Messagetype ist nicht fen. Fehler im Protokoll");
             System.out.println("Fehler im Protokoll");
         }
-        MoveListener ml = new MoveListener(this, v);
-        Thread mlThread = new Thread(ml);
-        mlThread.start();
     }
 
-    public void amZug() {
+    public void amZug() { // wird aufgerufen, wenn der Gegner einen Zug gemacht hat
         this.amZug = true;
         JSONObject fen = v.warteAufJSON();
         if (fen.getString("type").equals("moverequest")) {
-            System.out.println("SIE SIND AM ZUG. GEBEN SIE \"ZUG\"");
             this.feld = new Feld(fen.getString("fen"));
+            System.out.println("SIE SIND AM ZUG. GEBEN SIE \"ZUG\"");
+            System.out.println(feld);
+
         } else {
             System.out.println("Unbekannter Fehler");
         }

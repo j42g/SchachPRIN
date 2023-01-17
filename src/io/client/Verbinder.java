@@ -1,5 +1,6 @@
 package io.client;
 
+import io.Logger;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -60,7 +61,9 @@ public class Verbinder {
             while(!in.ready()){
                 Thread.sleep(100);
             }
-            return new JSONObject(in.readLine());
+            JSONObject ans = new JSONObject(in.readLine());
+            Logger.log("verbinder", "Nachricht vom Type \"" + ans.getString("type") + "\". Ganze Nachricht:" + ans);
+            return ans;
         } catch (Exception ex){
             ex.printStackTrace();
             System.out.println("FEHLER BEIM EMPFANGEN");

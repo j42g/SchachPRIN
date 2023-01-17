@@ -229,6 +229,7 @@ public class Feld {
                                 }
                             }
                             FullMove temp = new FullMove(origin, move, this, a.charAt(4) + "");
+                            System.out.println("Promotionmove " + a.charAt(4));
                             moveRecord.add(temp);
                             return temp;
                         }
@@ -239,8 +240,10 @@ public class Feld {
                 }
             }
         }
+
         return null;
     }
+
 
     public void move(FullMove a) {
         move(a.getPos(), a.getMov());
@@ -300,6 +303,7 @@ public class Feld {
         }
         return false;
     }
+
 
     public boolean queenSideCastlePossible(int color) {
         if (color == 1) {
@@ -380,7 +384,9 @@ public class Feld {
             side = 7;
         }
         if (feld[side][color].hasFigur()) {
-            return feld[side][color].getFigur().getHasMoved() || !(feld[side][color].getFigur() instanceof Turm);
+            if (!feld[side][color].getFigur().getHasMoved() && feld[side][color].getFigur() instanceof Turm) {
+                return false;
+            }
         }
         return true;
     }

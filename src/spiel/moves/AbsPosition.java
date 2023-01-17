@@ -78,9 +78,7 @@ public class AbsPosition {
     public boolean equals(Object o) {
         if (o instanceof AbsPosition) {
             AbsPosition a = (AbsPosition) o;
-            if (a.getX() == this.x && a.getY() == this.y) {
-                return true;
-            }
+            return a.getX() == this.x && a.getY() == this.y;
         }
         return false;
     }
