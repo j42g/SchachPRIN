@@ -30,6 +30,17 @@ public class FullMove {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (o instanceof FullMove) {
+            FullMove a = (FullMove) o;
+            if (a.toString().equals(this.toString())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public String toString() {
         if(promotionpiece != null){
             return pos.toString()+pos.addMove(mov).toString()+promotionpiece;

@@ -35,6 +35,16 @@ public class Move {
     public boolean isBlockable() {
         return blockable;
     }
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof Move) {
+            Move a = (Move) o;
+            if (a.getxOffset() == this.xOffset && a.getyOffset() == this.yOffset) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public String toString() {
         return "xOffset: " + xOffset + "; yOffset: " + yOffset;

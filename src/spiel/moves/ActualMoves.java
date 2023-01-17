@@ -101,7 +101,7 @@ public class ActualMoves {
         }
         if (!recursion) {
             if (feld.getFigAtPos(pos) instanceof Koenig) {
-                ArrayList<AbsPosition> enemyPos = feld.getAllPossibleMoves(-feld.getFigAtPos(pos).getFarbe());
+                ArrayList<AbsPosition> enemyPos = feld.getAllTheoreticallyPossibleMoves(-feld.getFigAtPos(pos).getFarbe());
                 i = 0;
                 while (i != res.size()) {
                     if (enemyPos.contains(res.get(i))) {
