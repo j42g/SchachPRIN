@@ -75,7 +75,7 @@ public class Feld {
     }
 
     public boolean isMate(int color) {
-        return getAllTheoreticallyPossibleMoves(color).size() == 0 && isInCheck(color); //checks if king is in checks and no moves change that
+        return getAllActuallyPossibleMoves(color).size() == 0 && isInCheck(color); //checks if king is in checks and no moves change that
     }
 
     public Feld(String fen) {
