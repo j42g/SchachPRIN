@@ -481,21 +481,42 @@ public class Feld {
     @Override
     public String toString() {
         StringBuilder board = new StringBuilder();
+        board.append("\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n");
         for (int rank = 7; rank >= 0; rank--) {
-            board.append("|");
+            board.append("\u2551");
             for (int file = 0; file < 8; file++) {
-                if (feld[file][rank].hasFigur()) {
-                    board.append(feld[file][rank].getFigur().toString())
-                            .append("|");
-                } else {
-                    board.append(" |");
+
+
+                if (file == 7) { // letzter File (für Rand)
+                    if (feld[file][rank].hasFigur()) {
+                        board.append(feld[file][rank].getFigur().toString())
+                                .append("\u2551");
+                    } else {
+                        if ((file + rank) % 2 == 0) { //  schwarz
+                            board.append("\u2002\u2002\u2551");
+                        } else { // // weiß
+                            board.append("\u2002\u2002\u2551");
+                        }
+                    }
+                } else { // sonst
+                    if (feld[file][rank].hasFigur()) {
+                        board.append(feld[file][rank].getFigur().toString())
+                                .append("|");
+                    } else {
+                        if ((file + rank) % 2 == 0) { //  schwarz
+                            board.append("\u2002\u2002|");
+                        } else { // weiß
+                            board.append("\u2002\u2002|");
+                        }
+                    }
                 }
             }
-            board.append(rank + 1)
+            board.append(" ")
+                    .append(rank + 1)
                     .append("\n");
 
         }
-        board.append("| a| b| c| d| e| f| g| h");
+        board.append("\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255D\n\u2002\u2002a\u2002\u2002b\u2002\u2002c\u2002\u2002d\u2002\u2002e\u2002\u2002f\u2002\u2002g\u2002\u2002h");
         return board.toString();
     }
 
