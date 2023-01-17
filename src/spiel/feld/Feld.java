@@ -41,7 +41,7 @@ public class Feld {
         Figur[] reihenfolgeW = new Figur[]{new Turm(WEISS), new Springer(WEISS), new Laeufer(WEISS), new Dame(WEISS), new Koenig(WEISS), new Laeufer(WEISS), new Springer(WEISS), new Turm(WEISS)};
         //Figur[] reihenfolgeW = new Figur[]{new Turm(WEISS), null, null, null, new Koenig(WEISS), new Laeufer(WEISS), new Springer(WEISS), new Turm(WEISS)}; //queencastle setup
         Figur[] reihenfolgeS = new Figur[]{new Turm(SCHWARZ), new Springer(SCHWARZ), new Laeufer(SCHWARZ), new Dame(SCHWARZ), new Koenig(SCHWARZ), new Laeufer(SCHWARZ), new Springer(SCHWARZ), new Turm(SCHWARZ)};
-        /*
+
         for (int x = 0; x < 8; x++) { // schwarz
             feld[x][7] = new Quadrat(reihenfolgeS[x]);
             feld[x][6] = new Quadrat(new Bauer(SCHWARZ));
@@ -51,9 +51,6 @@ public class Feld {
             feld[x][1] = new Quadrat(new Bauer(WEISS));
             feld[x][0] = new Quadrat(reihenfolgeW[x]);
         }
-        */
-        feld[0][6] = new Quadrat(new Bauer(WEISS));
-        feld[0][1] = new Quadrat(new Bauer(SCHWARZ));
     }
 
     public String toFenNot() {
