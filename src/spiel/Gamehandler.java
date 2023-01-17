@@ -34,6 +34,7 @@ public class Gamehandler {
     public void gameLogic() {
         while (true) {
             System.out.println(feld);
+            System.out.println(feld.getAllPossibleMoves(feld.playerTurn));
             String temp = "";
             System.out.print("move: ");
             temp = s.nextLine();
