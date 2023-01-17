@@ -104,7 +104,7 @@ public class Client implements Runnable {
                             v.sendeJSON(new JSONObject("{\"type\":\"forfeit\"}"));
                         }  else if (input.equals("VERLASSEN")) {
                             // TODO
-                        } else if (input.equals("ZUG")) {
+                        } else if (input.equals("ZIEHEN")) {
                             if (amZug) {
                                 ziehen();
                             } else {
@@ -412,6 +412,7 @@ public class Client implements Runnable {
         if (fen.getString("type").equals("startgame")) {
             this.feld = new Feld(fen.getString("fen"));
             this.farbe = fen.getInt("color");
+            System.out.println("SIE SIND " + (farbe == 1 ? "WEISS" : "SCHWARZ"));
             System.out.println(feld);
             MoveListener ml = new MoveListener(this, v);
             Thread mlThread = new Thread(ml);
@@ -426,6 +427,7 @@ public class Client implements Runnable {
         this.amZug = true;
         JSONObject fen = v.warteAufJSON();
         if (fen.getString("type").equals("moverequest")) {
+            this.feld = new Feld(fen.getString("fen"));
             System.out.println("SIE SIND AM ZUG. GEBEN SIE \"ZIEHEN\" EIN");
         } else {
             System.out.println("Unbekannter Fehler");
@@ -438,8 +440,6 @@ public class Client implements Runnable {
         String move;
         while (true) {
             while (true) {
-                this.feld = new Feld(fen.getString("fen"));
-                System.out.println("SIE SIND AM ZUG. GEBEN SIE \"ZUG\"");
                 System.out.println(feld.viewFrom(this.farbe));
                 System.out.print("Zug: ");
                 move = s.nextLine();
@@ -455,6 +455,7 @@ public class Client implements Runnable {
         }
         v.sendeJSON(new JSONObject("{\"type\":\"move\",\"move\":\"" + move + "\"}"));
         JSONObject res = v.warteAufJSON();
+        System.out.println(res);
         if (res.getString("type").equals("moveresponse")) {
             if (res.getBoolean("success")) {
                 feld.move(feld.parseMove(move));

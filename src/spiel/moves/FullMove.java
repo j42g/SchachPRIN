@@ -58,6 +58,6 @@ public class FullMove {
                 return false;
             }
         }
-        return Quadrat.isValidQuadrat(move.substring(0, 3)) && Quadrat.isValidQuadrat(move.substring(3, 5));
+        return Quadrat.isValidQuadrat(move.substring(0, 2)) && Quadrat.isValidQuadrat(move.substring(2, 4));
     }
 }

@@ -31,7 +31,7 @@ public class SchachSpiel implements Runnable {
         this.isWhiteMove = true;
 
         this.move = null;
-        if (Math.random() < 0.5) { // wer ist was
+        if (Math.random() < 1.5) { // wer ist was TODO GERADE NUR SO FÜR DEBUG
             this.white = a;
             this.black = null;
         } else {
@@ -148,12 +148,15 @@ public class SchachSpiel implements Runnable {
                 ex.printStackTrace();
             }
         }
-        if (move != null) {
-            //feld.move(null, null);
-        }
         if (!shouldRun) {
             // TODO
         }
+        if (move != null) {
+            feld.move(feld.parseMove(move));
+            move = null;
+            isWhiteMove = !isWhiteMove;
+        }
+
 
         this.move = null;
     }
@@ -177,13 +180,16 @@ public class SchachSpiel implements Runnable {
     }
 
     public int getMyColor(ClientHandler asker) {
-        if (white.equals(asker)) {
-            return 1;
-        } else if (black.equals(asker)) {
-            return -1;
-        } else {
-            return -0;
+        if (white != null) {
+            if (white.equals(asker)) {
+                return 1;
+            }
+        } else if (black != null){
+            if (black.equals(asker)) {
+                return -1;
+            }
         }
+        return 0;
     }
 
     public String getFen() {

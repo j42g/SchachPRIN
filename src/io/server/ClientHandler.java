@@ -5,6 +5,7 @@ import io.server.benutzerverwaltung.Benutzer;
 import io.server.spiel.SchachSpiel;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import spiel.moves.FullMove;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -104,8 +105,7 @@ public class ClientHandler extends Thread {
                     }
                     if (amZug) {
                         if (requestType.equals("move")) {
-                            // TODO parse json move into correct move
-                            game.move(null); // hier soll ein Move Objekt rein
+                            move(request);
                         }
                     }
                 }
@@ -175,8 +175,8 @@ public class ClientHandler extends Thread {
             case 2 -> { // privater lobby beitreten
                 if (server.doesPrivateExist(request.getLong("uuid"))) {
                     out.println("{\"type\":\"modeconfirm\",\"mode\":2}");
-                    starteSpiel();
                     server.createPrivate(this, request.getLong("uuid"));
+                    starteSpiel();
                 } else {
                     out.println("{\"type\":\"modedeny\",\"error\":\"ES EXISTIERT KEIN SPIEL MIT DIESER UUID\"}");
                 }
@@ -227,8 +227,6 @@ public class ClientHandler extends Thread {
         this.game.forfeit(this);
     }
 
-
-
     public void starteSpiel() {
         this.imSpiel = true;
         out.println(String.format("{\"type\":\"startgame\",\"fen\":\"" + game.getFen() + "\",\"color\":%d}", game.getMyColor(this)));
@@ -249,6 +247,12 @@ public class ClientHandler extends Thread {
     public void requestMove() {
         this.amZug = true;
         out.println("{\"type\":\"moverequest\",\"fen\":\"" + game.getFen() + "\"}");
+    }
+
+    public void move(JSONObject request) {
+        this.game.setMove(request.getString("move"));
+        this.amZug = false;
+        out.println("{\"type\":\"movereponse\",\"success\":true}");
     }
 
     public long getUUID() {
