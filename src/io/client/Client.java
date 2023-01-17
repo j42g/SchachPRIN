@@ -413,9 +413,9 @@ public class Client implements Runnable {
             this.feld = new Feld(fen.getString("fen"));
             this.farbe = fen.getInt("color");
             System.out.println("SIE SIND " + (farbe == 1 ? "WEISS" : "SCHWARZ"));
-            System.out.println(feld);
-            MoveListener ml = new MoveListener(this, v);
-            Thread mlThread = new Thread(ml);
+            System.out.println(feld.viewFrom(this.farbe));
+            MoveListener moveListener = new MoveListener(this, v);
+            Thread mlThread = new Thread(moveListener);
             mlThread.start();
         } else {
             Logger.log("Client", "Messagetype ist nicht fen. Fehler im Protokoll");
@@ -455,12 +455,14 @@ public class Client implements Runnable {
         }
         v.sendeJSON(new JSONObject("{\"type\":\"move\",\"move\":\"" + move + "\"}"));
         JSONObject res = v.warteAufJSON();
-        System.out.println(res);
         if (res.getString("type").equals("moveresponse")) {
             if (res.getBoolean("success")) {
                 feld.move(feld.parseMove(move));
                 System.out.println(feld.viewFrom(this.farbe));
                 amZug = false;
+                MoveListener moveListener = new MoveListener(this, v);
+                Thread mlThread = new Thread(moveListener);
+                mlThread.start();
             } else {
                 System.out.println("Unbekannter Fehler1");
             }

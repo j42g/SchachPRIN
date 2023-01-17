@@ -108,9 +108,11 @@ public class SchachSpiel implements Runnable {
                 }
                 case 1 -> {
                     if (black != null && !isWhiteMove) {
+                        Logger.log("SchachSpiel-" + uuid, "Frage Schwarz nach Zug");
                         black.requestMove();
                         awaitMove();
                     } else if (white != null && isWhiteMove) {
+                        Logger.log("SchachSpiel-" + uuid, "Frage Weiß nach Zug");
                         white.requestMove();
                         awaitMove();
                     } else {

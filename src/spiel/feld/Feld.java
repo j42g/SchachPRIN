@@ -51,7 +51,7 @@ public class Feld {
                     feld[file][rank] = new Quadrat(Figur.fromString(c));
                     file++;
                 } else if ("12345678".indexOf(c) != -1) {
-                    file += c - 0x31;
+                    file += c - 0x30;
                 }
             }
 
