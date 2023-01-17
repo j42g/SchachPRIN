@@ -1,7 +1,10 @@
 package spiel.feld;
 
 import spiel.figur.*;
-import spiel.moves.*;
+import spiel.moves.AbsPosition;
+import spiel.moves.ActualMoves;
+import spiel.moves.FullMove;
+import spiel.moves.Move;
 
 import java.util.ArrayList;
 
@@ -26,55 +29,6 @@ public class Feld {
 
     public Feld() {
         this("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    }
-
-    public String toFen() {
-        String res = "";
-        // board
-        int temp = 0;
-        for (int y = 7; y >= 0; y--) {
-            for (int x = 0; x < 8; x++) {
-                if (feld[x][y].getFigur() == null) {
-                    temp++;
-                } else {
-                    if (temp != 0) {
-                        res += temp;
-                        temp = 0;
-                    }
-                    res += feld[x][y].getFigur().toLetter();
-                }
-            }
-            if (temp != 0) {
-                res += temp;
-                temp = 0;
-            }
-            if (y != 0) {
-                res += "/";
-            }
-        }
-        // turn
-        res += " " + (playerTurn == 1 ? "w" : "b");
-        // castling rights
-        if (!KWCastling && !QWCastling && !KBCastling && !QBCastling) {
-            res += " -";
-        } else {
-            res += " " + (KWCastling ? "K" : "") + (QWCastling ? "Q" : "") + (KBCastling ? "k" : "") + (QBCastling ? "q" : "");
-        }
-        // en passant
-        res += " " + (enPassant == null ? "-" : enPassant.toString());
-        // fifty move rule
-        res += " " + fiftyMoveRule;
-        // move count
-        res += " " + moveCount;
-        return res;
-    }
-
-    public boolean isInCheck(int color) {
-        return getAllTheoreticallyPossibleMoves(-color).contains(getKingPos(color)); //checks if king is in a position which an enemy piece can reach
-    }
-
-    public boolean isMate(int color) {
-        return getAllActuallyPossibleMoves(color).size() == 0 && isInCheck(color); //checks if king is in checks and no moves change that
     }
 
     public Feld(String fen) {
@@ -122,13 +76,21 @@ public class Feld {
 
     }
 
-    public Feld(boolean a) {
+    private Feld(boolean a) {
         this.feld = new Quadrat[8][8];
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
                 feld[x][y] = new Quadrat();
             }
         }
+    }
+
+    public boolean isInCheck(int color) {
+        return getAllTheoreticallyPossibleMoves(-color).contains(getKingPos(color)); //checks if king is in a position which an enemy piece can reach
+    }
+
+    public boolean isMate(int color) {
+        return getAllActuallyPossibleMoves(color).size() == 0 && isInCheck(color); //checks if king is in checks and no moves change that
     }
 
     public Feld copyFeld() {
@@ -140,7 +102,6 @@ public class Feld {
         }
         return res;
     }
-
 
     public boolean threeFoldRepetition() {
         int lastIndex = moveRecord.size() - 1;
@@ -243,18 +204,17 @@ public class Feld {
         return null;
     }
 
-
     public void move(FullMove a) {
         move(a.getPos(), a.getMov());
     }
 
     public boolean move(AbsPosition a, Move b) {
         if (isValidMove(new FullMove(a, b, this))) {
-            updateFiftyMoveRule(a,b);
+            updateFiftyMoveRule(a, b);
             updateCastlingRights();
             if (getFigAtPos(a) instanceof Koenig && Math.abs(b.getxOffset()) == 2) {
                 resetEnPassant();
-                if(getFigAtPos(a).getFarbe() == -1){
+                if (getFigAtPos(a).getFarbe() == -1) {
                     moveCount++;
                 }
                 return castle(a, b);
@@ -268,7 +228,7 @@ public class Feld {
                 if (getFigAtPos(a) instanceof Bauer && (a.addMove(b).getY() == 7 || a.addMove(b).getY() == 0)) { //replaces the pawn with the current promotionpiece
                     setFigAtPos(a, promotionPiece);
                 }
-                if(getFigAtPos(a).getFarbe() == -1){
+                if (getFigAtPos(a).getFarbe() == -1) {
                     moveCount++;
                 }
                 setFigAtPos(a.addMove(b), getFigAtPos(a));
@@ -280,21 +240,23 @@ public class Feld {
         }
         return false;
     }
-    private void updateCastlingRights(){
-        if(KWCastling){
+
+    private void updateCastlingRights() {
+        if (KWCastling) {
             KWCastling = kingSideCastlePossible(1);
         }
-        if(KBCastling){
+        if (KBCastling) {
             KBCastling = kingSideCastlePossible(-1);
         }
-        if(QWCastling){
+        if (QWCastling) {
             QWCastling = queenSideCastlePossible(1);
         }
-        if(QBCastling){
+        if (QBCastling) {
             QBCastling = queenSideCastlePossible(-1);
         }
     }
-    private void updateFiftyMoveRule(AbsPosition a, Move b){
+
+    private void updateFiftyMoveRule(AbsPosition a, Move b) {
         if (getFigAtPos(a) instanceof Bauer || getFigAtPos(a.addMove(b)) != null) {
             fiftyMoveRule = 0;
         }
@@ -302,6 +264,7 @@ public class Feld {
             fiftyMoveRule++;
         }
     }
+
     private boolean castle(AbsPosition a, Move b) {
         int rookXPos = 0;
         if (b.getxOffset() > 0) {
@@ -410,7 +373,6 @@ public class Feld {
         return true;
     }
 
-
     public ArrayList<FullMove> getMoveRecord() {
         return moveRecord;
     }
@@ -466,7 +428,7 @@ public class Feld {
         this.enPassant = enPassant;
     }
 
-    public void resetEnPassant(){
+    public void resetEnPassant() {
         this.enPassant = null;
     }
 
@@ -503,8 +465,7 @@ public class Feld {
 
                     if (file == 0) { // letzter File (für Rand)
                         if (feld[file][rank].hasFigur()) {
-                            board.append(feld[file][rank].getFigur().toString())
-                                    .append("\u2551");
+                            board.append(feld[file][rank].getFigur().toString()).append("\u2551");
                         } else {
                             if ((file + rank) % 2 == 0) { //  schwarz
                                 board.append("\u2002\u2002\u2551");
@@ -514,8 +475,7 @@ public class Feld {
                         }
                     } else { // sonst
                         if (feld[file][rank].hasFigur()) {
-                            board.append(feld[file][rank].getFigur().toString())
-                                    .append("|");
+                            board.append(feld[file][rank].getFigur().toString()).append("|");
                         } else {
                             if ((file + rank) % 2 == 0) { //  schwarz
                                 board.append("\u2002\u2002|");
@@ -525,14 +485,53 @@ public class Feld {
                         }
                     }
                 }
-                board.append(" ")
-                        .append(rank + 1)
-                        .append("\n");
+                board.append(" ").append(rank + 1).append("\n");
 
             }
             board.append("\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255D\n\u2002\u2002h\u2002\u2002g\u2002\u2002f\u2002\u2002e\u2002\u2002d\u2002\u2002c\u2002\u2002b\u2002\u2002a");
             return board.toString();
         }
+    }
+
+    public String toFen() {
+        String res = "";
+        // board
+        int temp = 0;
+        for (int y = 7; y >= 0; y--) {
+            for (int x = 0; x < 8; x++) {
+                if (feld[x][y].getFigur() == null) {
+                    temp++;
+                } else {
+                    if (temp != 0) {
+                        res += temp;
+                        temp = 0;
+                    }
+                    res += feld[x][y].getFigur().toLetter();
+                }
+            }
+            if (temp != 0) {
+                res += temp;
+                temp = 0;
+            }
+            if (y != 0) {
+                res += "/";
+            }
+        }
+        // turn
+        res += " " + (playerTurn == 1 ? "w" : "b");
+        // castling rights
+        if (!KWCastling && !QWCastling && !KBCastling && !QBCastling) {
+            res += " -";
+        } else {
+            res += " " + (KWCastling ? "K" : "") + (QWCastling ? "Q" : "") + (KBCastling ? "k" : "") + (QBCastling ? "q" : "");
+        }
+        // en passant
+        res += " " + (enPassant == null ? "-" : enPassant.toString());
+        // fifty move rule
+        res += " " + fiftyMoveRule;
+        // move count
+        res += " " + moveCount;
+        return res;
     }
 
     @Override
@@ -546,8 +545,7 @@ public class Feld {
 
                 if (file == 7) { // letzter File (für Rand)
                     if (feld[file][rank].hasFigur()) {
-                        board.append(feld[file][rank].getFigur().toString())
-                                .append("\u2551");
+                        board.append(feld[file][rank].getFigur().toString()).append("\u2551");
                     } else {
                         if ((file + rank) % 2 == 0) { //  schwarz
                             board.append("\u2002\u2002\u2551");
@@ -557,8 +555,7 @@ public class Feld {
                     }
                 } else { // sonst
                     if (feld[file][rank].hasFigur()) {
-                        board.append(feld[file][rank].getFigur().toString())
-                                .append("|");
+                        board.append(feld[file][rank].getFigur().toString()).append("|");
                     } else {
                         if ((file + rank) % 2 == 0) { //  schwarz
                             board.append("\u2002\u2002|");
@@ -568,9 +565,7 @@ public class Feld {
                     }
                 }
             }
-            board.append(" ")
-                    .append(rank + 1)
-                    .append("\n");
+            board.append(" ").append(rank + 1).append("\n");
 
         }
         board.append("\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255D\n\u2002\u2002a\u2002\u2002b\u2002\u2002c\u2002\u2002d\u2002\u2002e\u2002\u2002f\u2002\u2002g\u2002\u2002h");

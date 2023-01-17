@@ -175,7 +175,7 @@ public class ClientHandler extends Thread {
             case 2 -> { // privater lobby beitreten
                 if (server.doesPrivateExist(request.getLong("uuid"))) {
                     out.println("{\"type\":\"modeconfirm\",\"mode\":2}");
-                    server.createPrivate(this, request.getLong("uuid"));
+                    server.joinPrivate(this, request.getLong("uuid"));
                     starteSpiel();
                 } else {
                     out.println("{\"type\":\"modedeny\",\"error\":\"ES EXISTIERT KEIN SPIEL MIT DIESER UUID\"}");
@@ -228,8 +228,8 @@ public class ClientHandler extends Thread {
     }
 
     public void starteSpiel() {
-        this.imSpiel = true;
         out.println(String.format("{\"type\":\"startgame\",\"fen\":\"" + game.getFen() + "\",\"color\":%d}", game.getMyColor(this)));
+        this.imSpiel = true;
         this.game.start();
     }
 
@@ -245,6 +245,11 @@ public class ClientHandler extends Thread {
     }
 
     public void requestMove() {
+        while(!imSpiel){
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {}
+        }
         this.amZug = true;
         out.println("{\"type\":\"moverequest\",\"fen\":\"" + game.getFen() + "\"}");
     }

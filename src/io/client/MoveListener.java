@@ -17,6 +17,7 @@ public class MoveListener implements Runnable {
         while (shouldRun) {
             if (v.hasMove()) {
                 client.amZug();
+                stop();
             }
         }
     }

@@ -72,8 +72,10 @@ public class SchachSpiel implements Runnable {
             return false;
         } else if (white == null) {
             white = client;
+            client.giveGame(this);
         } else {
             black = client;
+            client.giveGame(this);
         }
         playerCount++;
         return true;

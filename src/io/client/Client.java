@@ -462,7 +462,7 @@ public class Client implements Runnable {
                 System.out.println(feld.viewFrom(this.farbe));
                 amZug = false;
             } else {
-                System.out.println("Unbekannter Fehler");
+                System.out.println("Unbekannter Fehler1");
             }
         } else {
             System.out.println("Fehler im Protokoll");

@@ -205,8 +205,7 @@ public class Server implements Runnable {
         Logger.log("server", client.getUUID() + " versucht " + uuid + " beizutreten");
         for (int i = 0; i < waitingPrivate.size(); i++) {
             if (waitingPrivate.get(i).getUUID() == uuid) {
-                // TODO create game with them
-                schachSpiels.add(waitingPrivate.get(i));
+                waitingPrivate.get(i).joinGame(client);
                 waitingPrivate.remove(i);
                 Logger.log("server", client.getUUID() + " tritt " + uuid + " bei");
                 return true;
