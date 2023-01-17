@@ -1,5 +1,7 @@
 package spiel.figur;
 
+import spiel.feld.Feld;
+
 public class Koenig extends Figur {
     private boolean hasMoved = false;
     public Koenig(int farbe) {
@@ -33,7 +35,7 @@ public class Koenig extends Figur {
     }
 
     public String toString() {
-        if (getFarbe() == 1){
+        if (getFarbe() == Feld.WEISS){
             return "\u2654";
         } else {
             return "\u265A";

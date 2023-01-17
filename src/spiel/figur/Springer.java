@@ -1,5 +1,7 @@
 package spiel.figur;
 
+import spiel.feld.Feld;
+
 public class Springer extends Figur {
 
 
@@ -36,7 +38,7 @@ public class Springer extends Figur {
     }
 
     public String toString() {
-        if (getFarbe() == 1){
+        if (getFarbe() == Feld.WEISS){
             return"\u2658";
         } else {
             return "\u265E";

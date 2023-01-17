@@ -1,5 +1,7 @@
 package spiel.figur;
 
+import spiel.feld.Feld;
+
 public class Laeufer extends Figur {
 
 
@@ -32,7 +34,7 @@ public class Laeufer extends Figur {
     }
 
     public String toString() {
-        if (getFarbe() == 1){
+        if (getFarbe() == Feld.WEISS){
             return "\u2657";
         } else {
             return "\u265D";

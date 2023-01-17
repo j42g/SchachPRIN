@@ -12,10 +12,12 @@ public class Main {
     public static void main(String[] args) {
 
         Feld f = new Feld();
-        System.out.println(f.toFen());
-        System.out.println(f);
-        System.out.println(f.getFigAtPos(new AbsPosition("d8")));
+        System.out.println(f.viewFrom(Feld.WEISS));
+        System.out.println(f.viewFrom(Feld.SCHWARZ));
 
+        /*Client c = new Client();
+        Thread Tc = new Thread(c);
+        Tc.start();*/
 
     }
 }

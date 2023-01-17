@@ -1,5 +1,7 @@
 package spiel.figur;
 
+import spiel.feld.Feld;
+
 public class Turm extends Figur {
 
     private boolean hasMoved = false;
@@ -26,7 +28,7 @@ public class Turm extends Figur {
         }
     }
     public String toString() {
-        if (getFarbe() == 1) {
+        if (getFarbe() == Feld.WEISS) {
             return "\u2656";
         } else {
             return "\u265C";

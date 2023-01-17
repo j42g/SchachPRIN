@@ -1,5 +1,7 @@
 package spiel.figur;
 
+import spiel.feld.Feld;
+
 public class Bauer extends Figur {
     private boolean hasMoved = false;
 
@@ -35,7 +37,7 @@ public class Bauer extends Figur {
     @Override
     public String toString() {
 
-        if (getFarbe() == 1){
+        if (getFarbe() == Feld.WEISS){
             return "\u2659";
         } else {
             return "\u265F";

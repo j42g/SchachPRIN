@@ -478,6 +478,52 @@ public class Feld {
         return fiftyMoveRule;
     }
 
+
+    public String viewFrom(int color) {
+        if (color == WEISS) {
+            return toString();
+        } else {
+            StringBuilder board = new StringBuilder();
+            board.append("\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n");
+            for (int rank = 0; rank < 8; rank++) {
+                board.append("\u2551");
+                for (int file = 7; file >= 0; file--) {
+
+
+                    if (file == 0) { // letzter File (für Rand)
+                        if (feld[file][rank].hasFigur()) {
+                            board.append(feld[file][rank].getFigur().toString())
+                                    .append("\u2551");
+                        } else {
+                            if ((file + rank) % 2 == 0) { //  schwarz
+                                board.append("\u2002\u2002\u2551");
+                            } else { // // weiß
+                                board.append("\u2002\u2002\u2551");
+                            }
+                        }
+                    } else { // sonst
+                        if (feld[file][rank].hasFigur()) {
+                            board.append(feld[file][rank].getFigur().toString())
+                                    .append("|");
+                        } else {
+                            if ((file + rank) % 2 == 0) { //  schwarz
+                                board.append("\u2002\u2002|");
+                            } else { // weiß
+                                board.append("\u2002\u2002|");
+                            }
+                        }
+                    }
+                }
+                board.append(" ")
+                        .append(rank + 1)
+                        .append("\n");
+
+            }
+            board.append("\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255D\n\u2002\u2002h\u2002\u2002g\u2002\u2002f\u2002\u2002e\u2002\u2002d\u2002\u2002c\u2002\u2002b\u2002\u2002a");
+            return board.toString();
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder board = new StringBuilder();
