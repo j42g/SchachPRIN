@@ -18,14 +18,11 @@ public class Turm extends Figur {
     }
 
     public String toString() {
-        return "T";
-        /*
         if (getFarbe() == -1) {
             return "\u2656";
         } else {
             return "\u265C";
         }
-         */
     }
     public boolean getHasMoved(){
         return this.hasMoved;

@@ -25,14 +25,10 @@ public class Koenig extends Figur {
     }
 
     public String toString() {
-        return "K";
-        /*
         if (getFarbe() == -1){
             return "\u2654";
         } else {
             return "\u265A";
         }
-
-         */
     }
 }

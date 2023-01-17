@@ -26,15 +26,13 @@ public class Dame extends Figur {
 
 
     public String toString() {
-        return "D";
-        /*
+
         if (getFarbe() == -1){
             return "\u2655";
         } else {
             return"\u265B";
         }
 
-         */
     }
 
 }

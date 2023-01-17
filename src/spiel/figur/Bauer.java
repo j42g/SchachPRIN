@@ -25,15 +25,13 @@ public class Bauer extends Figur {
 
     @Override
     public String toString() {
-        return "B";
-        /*
+
         if (getFarbe() == -1){
             return "\u2659";
         } else {
             return "\u265F";
         }
 
-         */
     }
 
 }

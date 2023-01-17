@@ -23,14 +23,10 @@ public class Laeufer extends Figur {
     }
 
     public String toString() {
-        return "L";
-        /*
         if (getFarbe() == -1){
             return "\u2657";
         } else {
             return "\u265D";
         }
-
-         */
     }
 }

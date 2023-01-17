@@ -27,15 +27,11 @@ public class Springer extends Figur {
     }
 
     public String toString() {
-        return "S";
-        /*
         if (getFarbe() == -1){
             return"\u2658";
         } else {
             return "\u265E";
         }
-
-         */
     }
 
 }
