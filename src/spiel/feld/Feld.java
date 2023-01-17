@@ -34,8 +34,9 @@ public class Feld {
     }
 
     public String toFen() {
-        int temp = 0;
         String res = "";
+        // board
+        int temp = 0;
         for (int y = 7; y >= 0; y--) {
             for (int x = 0; x < 8; x++) {
                 if (feld[x][y].getFigur() == null) {
@@ -56,6 +57,20 @@ public class Feld {
                 res += "/";
             }
         }
+        // turn
+        res += " " + (playerTurn == 1 ? "w" : "b");
+        // castling rights
+        if (!KWCastling && !QWCastling && !KBCastling && !QBCastling) {
+            res += " -";
+        } else {
+            res += " " + (KWCastling ? "K" : "") + (QWCastling ? "Q" : "") + (KBCastling ? "k" : "") + (QBCastling ? "q" : "");
+        }
+        // en passant
+        res += " " + (enPassant == null ? "-" : enPassant.toString());
+        // fifty move rule
+        res += " " + fiftyMoveRule;
+        // move count
+        res += " " + moveCount;
         return res;
     }
 
@@ -99,6 +114,7 @@ public class Feld {
         }
         // turn
         this.playerTurn = fenparts[1].equals("w") ? 1 : -1;
+        // castling rights
         this.KWCastling = fenparts[2].contains("K");
         this.QWCastling = fenparts[2].contains("Q");
         this.KBCastling = fenparts[2].contains("k");
