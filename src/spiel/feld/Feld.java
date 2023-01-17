@@ -268,12 +268,12 @@ public class Feld {
                 if (getFigAtPos(a) instanceof Bauer && (a.addMove(b).getY() == 7 || a.addMove(b).getY() == 0)) { //replaces the pawn with the current promotionpiece
                     setFigAtPos(a, promotionPiece);
                 }
-                setFigAtPos(a.addMove(b), getFigAtPos(a));
-                setFigAtPos(a, null);
-                getFigAtPos(a.addMove(b)).moved();
                 if(getFigAtPos(a).getFarbe() == -1){
                     moveCount++;
                 }
+                setFigAtPos(a.addMove(b), getFigAtPos(a));
+                setFigAtPos(a, null);
+                getFigAtPos(a.addMove(b)).moved();
                 playerTurn = -playerTurn;
                 return true;
             }
@@ -367,7 +367,6 @@ public class Feld {
         if (checker.computeMoves(move.getPos()).contains(move.getPos().addMove(move.getMov()))) {
             if (getFigAtPos(move.getPos()).getFarbe() == playerTurn) {
                 if (isInCheckAfterMove(move)) {
-
                     return false;
                 }
                 return true;
