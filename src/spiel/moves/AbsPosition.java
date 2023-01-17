@@ -19,11 +19,16 @@ public class AbsPosition {
                 this.y = square.charAt(1) - 0x31;
                 System.out.println(x + ", " + y);
             } else {
+                this.x = -1;
+                this.y = -1;
                 System.out.println("Falsches Format");
             }
         } else {
+            this.x = -1;
+            this.y = -1;
             System.out.println("Falsches Format");
         }
+
     }
 
     public AbsPosition addMove(Move move) {

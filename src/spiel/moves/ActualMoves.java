@@ -73,6 +73,9 @@ public class ActualMoves {
                         for (int i = 1; i < 8; i++) {
                             try {
                                 if (feld.getFigAtPos(res.get(res.size() - 1)) != null) {
+                                    if(feld.getFigAtPos(res.get(res.size() - 1)).getFarbe()==feld.getFigAtPos(pos).getFarbe()){
+                                        res.remove(res.size()-1);
+                                    }
                                     break;
                                 } else {
                                     res.add(res.get(res.size() - 1).addMove(box));

@@ -6,19 +6,26 @@ public class Move {
     private boolean blockable;
     private boolean bauerMove;
 
-    public Move(int xOffset, int yOffset){
+    public Move(int xOffset, int yOffset) {
         this.xOffset = xOffset;
         this.yOffset = yOffset;
         this.blockable = false;
         this.bauerMove = false;
     }
-    public Move(int xOffset, int yOffset, boolean blockable){
-        this(xOffset,yOffset);
+
+    public Move(int xOffset, int yOffset, boolean blockable) {
+        this(xOffset, yOffset);
         this.blockable = blockable;
     }
-    public Move(int xOffset, int yOffset, boolean blockable, boolean bauerMove){
+
+    public Move(int xOffset, int yOffset, boolean blockable, boolean bauerMove) {
         this(xOffset, yOffset, blockable);
         this.bauerMove = bauerMove;
+    }
+
+    public Move(AbsPosition origin, AbsPosition destination) {
+        this.xOffset = destination.getX() - origin.getX();
+        this.yOffset = destination.getY() - origin.getY();
     }
 
 
@@ -37,7 +44,8 @@ public class Move {
     public boolean isBauerMove() {
         return bauerMove;
     }
-    public String toString(){
-        return "xOffset: "+ xOffset+"; yOffset: "+yOffset;
+
+    public String toString() {
+        return "xOffset: " + xOffset + "; yOffset: " + yOffset;
     }
 }

@@ -42,6 +42,7 @@ public class Gamehandler {
                 continue;
             }
             System.out.println();
+            System.out.println(feld.checker.computeMoves(pos));
             System.out.print("move offset: ");
             temp = s.nextLine();
             System.out.println();
