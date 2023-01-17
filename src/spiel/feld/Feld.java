@@ -200,7 +200,7 @@ public class Feld {
         AbsPosition origin;
         Move move;
         if (a.length() < 4 || a.length() > 5) {
-            System.out.println("Falsche Länge");
+            System.out.println("Falsche Länge, moveParser error");
             return null;
         }
         if (Character.isDigit(a.charAt(1))) {
@@ -218,17 +218,16 @@ public class Feld {
                             if (a.length() == 4) {
                                 return null;
                             }
-                            switch (a.charAt(4)) {
-                                case 'Q' -> promotionPiece = new Dame(getFigAtPos(origin).getFarbe());
-                                case 'N' -> promotionPiece = new Springer(getFigAtPos(origin).getFarbe());
-                                case 'B' -> promotionPiece = new Laeufer(getFigAtPos(origin).getFarbe());
-                                case 'R' -> promotionPiece = new Turm(getFigAtPos(origin).getFarbe());
+                            switch (Character.toLowerCase(a.charAt(4))) {
+                                case 'q' -> promotionPiece = new Dame(getFigAtPos(origin).getFarbe());
+                                case 'n' -> promotionPiece = new Springer(getFigAtPos(origin).getFarbe());
+                                case 'b' -> promotionPiece = new Laeufer(getFigAtPos(origin).getFarbe());
+                                case 'r' -> promotionPiece = new Turm(getFigAtPos(origin).getFarbe());
                                 default -> {
                                     return null;
                                 }
                             }
                             FullMove temp = new FullMove(origin, move, this, a.charAt(4) + "");
-                            System.out.println("Promotionmove " + a.charAt(4));
                             moveRecord.add(temp);
                             return temp;
                         }
