@@ -3,12 +3,16 @@ package io.server;
 import io.Logger;
 import io.server.benutzerverwaltung.Benutzer;
 import io.server.spiel.SchachSpiel;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class ClientHandler extends Thread {
 
@@ -73,77 +77,26 @@ public class ClientHandler extends Thread {
             } else {
                 inputErwartend = true;
             }
+
+
             if (!eingeloggt) {
                 if (requestType.equals("login")) {
-                    if (!server.existiertNutzer(request)) { // benutzer existiert nicht
-                        out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: BENUTZER EXISTIERT NICHT\"}");
-                    } else {
-                        this.benutzer = server.einloggen(request);
-                        if (this.benutzer == null) { // passwort falsch
-                            out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: PASSWORT FALSCH\"}");
-                        } else { // alles korrekt
-                            if (benutzer.hatAktivesSpiel()) {
-                                if (server.checkIfExists(benutzer.getUuidOffenesSpiel())) {
-                                    server.joinPrivate(this, benutzer.getUuidOffenesSpiel());
-                                } else {
-                                    server.createPrivate(this, benutzer.getUuidOffenesSpiel());
-                                }
-                                // TODO
-                            } else {
-                                out.println("{\"type\":\"authresponse\",\"success\":true,\"opengame\":-1}");
-                            }
-
-                            eingeloggt = true;
-                        }
-                    }
+                    login(request);
                 } else if (requestType.equals("register")) {
-                    if (server.existiertNutzer(request)) { // benutzer existiert nicht schon
-                        out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: BENUTZER EXISTIERT SCHON\"}");
-                    } else {
-                        this.benutzer = server.registrieren(request);
-                        if (this.benutzer == null) { // gute Frage wie man hier hinkommt
-                            out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: UNBEKANNT\"}");
-                        } else { // alles korrekt
-                            out.println("{\"type\":\"authresponse\",\"success\":true}");
-                            eingeloggt = true;
-                        }
-                    }
+                    register(request);
                 } else {
                     System.out.println("FEHLER IM PROTOKOLL");
                 }
-            } else { // eingeloggt heißt benutzer != null (hoffentlich)
+            } else { // eingeloggt heißt benutzer != null
                 if (!imSpiel) {
-                    if (requestType.equals("logout")) {
+                    if (requestType.equals("logout")) { // ausloggen
                         out.println("{\"type\":\"logoutresponse\"}");
                         this.benutzer = null;
                         this.eingeloggt = false;
                     } else if (requestType.equals("modeselect")) {
-                        int gamemode = request.getInt("mode");
-                        switch (gamemode) {
-                            case 0 -> { // random game
-                                if (server.lookingForOpponent(this)) { // gegner verfügbar
-                                    out.println("{\"type\":\"modeconfirm\",\"mode\":0,\"ready\":true}");
-                                    starteSpiel();
-                                } else { // muss warten
-                                    out.println("{\"type\":\"modeconfirm\",\"mode\":0,\"ready\":false}");
-                                    queue(out, in);
-                                    starteSpiel();
-                                }
-                            }
-                            case 1 -> { // private lobby erstellt
-                                server.waitingPrivate(this);
-                                out.println(String.format("{\"type\":\"modeconfirm\",\"mode\":1,\"uuid\":%d}", this.game.getUUID()));
-                                starteSpiel();
-                            }
-                            case 2 -> { // privater lobby beitreten
-                                if (server.joinPrivate(this, request.getLong("uuid"))) {
-                                    out.println("{\"type\":\"modeconfirm\",\"mode\":2}");
-                                    starteSpiel();
-                                } else {
-                                    out.println("{\"type\":\"modedeny\",\"error\":\"ES EXISTIERT KEIN SPIEL MIT DIESER UUID\"}");
-                                }
-                            }
-                        }
+                        modeselect(request);
+                    } else if (requestType.equals("leaderboardrequest")) {
+                        leaderboard();
                     }
                 } else { // im spiel
                     if (requestType.equals("forfeit")) {
@@ -157,6 +110,73 @@ public class ClientHandler extends Thread {
                     }
                 }
 
+            }
+        }
+    }
+    
+    public void login(JSONObject request) {
+        if (!server.existiertNutzer(request)) { // benutzer existiert nicht
+            out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: BENUTZER EXISTIERT NICHT\"}");
+        } else {
+            this.benutzer = server.einloggen(request);
+            if (this.benutzer == null) { // passwort falsch
+                out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: PASSWORT FALSCH\"}");
+            } else { // alles korrekt
+                if (benutzer.hatAktivesSpiel()) {
+                    if (server.checkIfExists(benutzer.getUuidOffenesSpiel())) {
+                        server.joinPrivate(this, benutzer.getUuidOffenesSpiel());
+                    } else {
+                        server.createPrivate(this, benutzer.getUuidOffenesSpiel());
+                    }
+                    // TODO
+                } else {
+                    out.println("{\"type\":\"authresponse\",\"success\":true,\"opengame\":-1}");
+                }
+
+                eingeloggt = true;
+            }
+        }
+    }
+
+    public void register(JSONObject request) {
+        if (server.existiertNutzer(request)) { // benutzer existiert nicht schon
+            out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: BENUTZER EXISTIERT SCHON\"}");
+        } else {
+            this.benutzer = server.registrieren(request);
+            if (this.benutzer == null) { // gute Frage wie man hier hinkommt
+                out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: UNBEKANNT\"}");
+            } else { // alles korrekt
+                out.println("{\"type\":\"authresponse\",\"success\":true}");
+                eingeloggt = true;
+            }
+        }
+    }
+
+    public void modeselect(JSONObject request) {
+        int gamemode = request.getInt("mode");
+        switch (gamemode) {
+            case 0 -> { // random game
+                if (server.lookingForOpponent(this)) { // gegner verfügbar
+                    out.println("{\"type\":\"modeconfirm\",\"mode\":0,\"ready\":true}");
+                    starteSpiel();
+                } else { // muss warten
+                    out.println("{\"type\":\"modeconfirm\",\"mode\":0,\"ready\":false}");
+                    queue(out, in);
+                    starteSpiel();
+                }
+            }
+            case 1 -> { // private lobby erstellt
+                server.waitingPrivate(this);
+                out.println(String.format("{\"type\":\"modeconfirm\",\"mode\":1,\"uuid\":%d}", this.game.getUUID()));
+                starteSpiel();
+            }
+            case 2 -> { // privater lobby beitreten
+                if (server.joinPrivate(this, request.getLong("uuid"))) {
+                    out.println("{\"type\":\"modeconfirm\",\"mode\":2}");
+                    starteSpiel();
+                } else {
+                    out.println("{\"type\":\"modedeny\",\"error\":\"ES EXISTIERT KEIN SPIEL MIT DIESER UUID\"}");
+                }
             }
         }
     }
@@ -180,6 +200,23 @@ public class ClientHandler extends Thread {
             Logger.log("Client-Handler-" + this.UUID, "Fehler in der Queue");
         }
 
+    }
+
+    public void leaderboard() {
+        ArrayList<Benutzer> all = server.getAllNutzer();
+        all.sort(new Comparator<Benutzer>() { // sortiere nach Elo
+            @Override
+            public int compare(Benutzer o1, Benutzer o2) {
+                return Integer.compare(o2.getElo(), o1.getElo()); // sollte eigentlich andersrum nach java standard, aber so spart man sich das reverse
+            }
+        });
+        JSONArray lb = new JSONArray();
+        for (Benutzer benutzer : all) {
+            lb.put(new JSONObject(String.format("{\"name\":\"%S\",\"elo\":%d}", benutzer.getName(), benutzer.getElo())));
+        }
+        JSONObject finishedLb = new JSONObject("{\"type\":\"leaderboard\"}");
+        finishedLb.put("leaderboard", lb);
+        out.println(finishedLb);
     }
 
     public void forfeitGame() {
@@ -229,8 +266,10 @@ public class ClientHandler extends Thread {
     }
 
     public void terminate() { // diese funktion heißt client schließt die Verbindung
-        this.game.leaveGame(this);
         this.shouldRun = false;
+        if (this.game != null) {
+            this.game.leaveGame(this);
+        }
         if (imSpiel) {
             this.benutzer.setUuidOffenesSpiel(this.game.getUUID());
         }

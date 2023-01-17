@@ -1,6 +1,7 @@
 package io.client;
 
 import io.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import spiel.feld.Feld;
 
@@ -14,7 +15,26 @@ import java.util.Scanner;
 public class Client implements Runnable {
 
     private final String[] alleSpielmodi = new String[]{"RANDOM GEGNER", "PRIVATES SPIEL ERSTELLEN", "PRIVATEM SPIEL BEITRETEN"};
-    private final String[] alleBefehle = new String[]{"VERBINDEN", "EXIT", "TRENNEN", "ANMELDEN", "REGISTRIEREN", "ABMELDEN", "EXIT", "SPIELMODI", "ZUG", "AUFGEBEN", "VERLASSEN"};
+    private final String[] alleBefehle = new String[]{"VERBINDEN", "EXIT", "TRENNEN", "ANMELDEN", "REGISTRIEREN", "ABMELDEN", "EXIT", "SPIELMODI", "SPIELREGELN", "RANGLISTE", "ZUG", "AUFGEBEN", "VERLASSEN"};
+    private final String spielRegeln = "Ziel des Spiels \nZiel eines jeden Spieles ist es, den gegnerischen König \nso anzugreifen, dass er nicht mehr verteidigt werden \nkann und somit im nächsten Zug geschlagen werden könnte.\nDiese Stellung heißt Matt. Das Ziel ist es also, den Gegner \nmattzusetzen, bevor er es tut.\n\nGrundlegende Regeln\nDer König ist die wichtigste Figur beim Schach. Ein Königs-\nangriff, auch Schach genannt, muss unverzüglich abgewehrt\nwerden. Das Spiel Schach wird auf einem Brett mit 64 Feldern\ngespielt. Ein Spieler bewegt die weißen Steine, der andere\ndie schwarzen. Es muss immer abwechselnd gezogen werden.\nWeiß beginnt. Nur gegnerische Steine können geschlagen wer-\nden. Ein geschlagener Stein ist aus dem Spiel.\n\nGangart der Figuren\n\nSpringer" + "\u2658 \n"+ "Der Springer kann wie im Bild angegeben ziehen. Im Gegen-\nsatz zu allen anderen Figuren kann er andere Steine über-\nspringen. Er zieht immer zwei Felder horizontal und ein Feld\nvertikal oder zwei Felder vertikal und ein Feld horizontal.\n\nLäufer"+"\u2657 \n"+ "Läufer ziehen diagonal beliebig weit über das Brett, wobei \nsie nicht über andere Figuren hinweg ziehen dürfen. Aufgrund\nder diagonalen Zugweise kann ein Läufer nur Felder gleicher\nFeldfarbe erreichen. Dies bedeutet eine Einschränkung seiner\nZugmöglichkeiten und damit eine Schwäche des Läufers.\n\nTurm"+ "\u2656\n"+ "Ein Turm kann sich sowohl horizontal als auch vertikal über\neine beliebige Anzahl von Feldern bewegen. Er darf auf jedes\nfreie Feld in jeder Richtung linear ziehen, ohne jedoch über\nandere Figuren zu springen. Die einzige Ausnahme davon bildet\ndie Rochade, in deren Verlauf der Turm einmalig über den König\nspringt.\n\nDame"+ "\u2655 \n"+"Die Dame darf auf jedes freie Feld derselben Linie, Reihe oder\nDiagonale ziehen, ohne jedoch über andere Figuren zu springen\nund vereint somit die Wirkung eines Turms und eines Läufers in\nsich. Damit ist die Dame die beweglichste aller Figuren.\n\nBauer"+ "\u2659 \n"+ "Der Bauer ist die einzige Figur, die nicht rückwärts ziehe\nkann. Ebenso ist der Bauer die einzige Figur, die anders\nschlägt als zieht: er schlägt immer diagonal, zieht aber\ngerade.\n\nKönig" +
+            "\u2654 \n"+"Der König kann jeweils ein Feld in jede Richtung gehen.\nDamit kann er alle Felder des Schachbretts erreichen. Wegen\nseiner kleineSÜn Reichweite benötigt er dazu aber viele Züge.\nDer König darf kein bedrohtes Feld betreten.\n\nRochade\nBei einer Rochade tauschen König und Turm die Plätze. Der\nSpieler muss immer den König zuerst bewegen." +
+            "Bei der kurzen-\noder auch kleinen Rochade von Weiß, zieht der König von e1\nnach g1 und der Turm von h1 nach f1. Für Schwarz entsprechend\nKönig e8-g8 + Turm h8-f8." +
+            "Bei der langen- oder auch großen\nRochade von Weiß, zieht der König von e1 nach c1 und der Turm\nvon a1 nach d1. Für Schwarz entsprechend König e8-c8 + Turm\na8-d8." +
+            "\nDie Rochade kann nur dann ausgeführt werden, wenn\n\n" +
+            "-der König noch nicht bewegt wurde.\n\n" +
+            "-der beteiligte Turm noch nicht gezogen wurde.\n\n" +
+            "-zwischen dem König und dem beteiligten Turm \n keine andere Figur steht.\n\n" +
+            "-der König über kein Feld ziehen muss, das durch\neine feindliche Figur bedroht wird.\n\n" +
+            "-der König vor und nach Ausführung der Rochade\n nicht im Schach steht.\n\n" +
+            "-Turm und König müssen auf derselben Reihe stehen.\n\nDie Wertung einer Partie\n\nDie Partie zählt als gewonnen (=ein Punkt), wenn\n\n" +
+            "-der Gegner aufgibt.\n\n" +
+            "-der gegnerische König mattgesetzt wurde.\n\n" +
+            "Die Partie zählt als Remis (Unentschieden) (=ein halber Punkt), wenn\n\n" +
+            "-das Remis im gegenseitigen Einvernehmen ausgehandelt wurde.\n\n" +
+            "-ein Patt entstanden ist, das heißt, wenn der König nicht im\n Schach steht, aber aufgrund von Zugzwang jetzt ins Schach\n ziehen müsste.\n\n" +
+            "-die Partie auch bei ungeschicktestem Spiel von keinem Spieler\n mehr gewonnen werden kann.\n\n" +
+            "-eine Stellung zum dritten Mal entsteht, und jedes Mal derselbe\n Spieler am Zuge ist.\n\n" +
+            "-50 Züge lang keine Figur geschlagen und kein Bauer gezogen\n worden ist.\n";
 
     private Verbinder v;
     private Feld feld;
@@ -73,7 +93,7 @@ public class Client implements Runnable {
                         } else if (input.equals("SPIELMODI")) {
                             spielmodiAuswahl();
                         } else if (input.equals("SPIELREGELN")) {
-                            // TODO Til
+                            System.out.println(spielRegeln);
                         } else if (input.equals("RANGLISTE")) {
                             rangliste();
                         }
@@ -337,7 +357,18 @@ public class Client implements Runnable {
     }
 
     private void rangliste() {
-        // TODO
+        v.sendeJSON(new JSONObject("{\"type\":\"leaderboardrequest\"}"));
+        JSONObject res = v.warteAufJSON();
+        if (res.getString("type").equals("leaderboard")) {
+            JSONArray lb = res.getJSONArray("leaderboard");
+            JSONObject benutzer;
+            for (Object benutzerObj : lb) {
+                benutzer = (JSONObject) benutzerObj;
+                System.out.println(benutzer.getString("name") + ":\t" + benutzer.getLong("elo"));
+            }
+        } else {
+            System.out.println("Fehler im Protokoll");
+        }
     }
 
     private void queue() {

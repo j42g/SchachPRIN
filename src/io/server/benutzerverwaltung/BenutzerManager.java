@@ -62,6 +62,10 @@ public class BenutzerManager {
         return neu;
     }
 
+    public ArrayList<Benutzer> getAllNutzer() {
+        return benutzer; // keine kopie weil es egal sein sollte, wie es sortiert ist
+    }
+
     public Benutzer getNutzer(String name) {
         for (Benutzer nutzer : this.benutzer) {
             if (nutzer.getName().equals(name)) {

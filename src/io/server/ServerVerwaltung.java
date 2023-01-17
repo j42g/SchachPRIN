@@ -44,7 +44,6 @@ public class ServerVerwaltung implements Runnable {
                         System.out.println("SERVER MUSS ERST GESTOPPT WERDEN");
                     } else {
                         System.out.println("BEENDE PROGRAMM");
-
                         Logger.log("server-verwaltung", "Server-Thread beendet");
                         return;
                     }

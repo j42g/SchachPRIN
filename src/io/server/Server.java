@@ -6,6 +6,7 @@ import io.server.benutzerverwaltung.BenutzerManager;
 import io.server.spiel.SchachSpiel;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -69,15 +70,17 @@ public class Server implements Runnable {
     }
 
     private void addThread(Socket client1) {
-        long id;
-        Random gen = new Random();
-        do {
-            id = gen.nextLong();
-        } while (!isClientUUIDFree(id) && id > -1);
-        ClientHandler sgt = new ClientHandler(client1, id);
-        sgt.start();
-        this.threads.add(sgt);
-        Logger.log("server", "Client-Handler-" + id + " gestartet");
+        if(shouldRun) {
+            long id;
+            Random gen = new Random();
+            do {
+                id = gen.nextLong();
+            } while (!isClientUUIDFree(id) && id > -1);
+            ClientHandler sgt = new ClientHandler(client1, id);
+            sgt.start();
+            this.threads.add(sgt);
+            Logger.log("server", "Client-Handler-" + id + " gestartet");
+        } // das if brauch man um den server zu schließen und das server.accept() zu beenden
     }
 
     private synchronized void speichereSpiel(String fen) {
@@ -116,6 +119,10 @@ public class Server implements Runnable {
             }
         }
         return true;
+    }
+
+    public ArrayList<Benutzer> getAllNutzer() {
+        return bm.getAllNutzer();
     }
 
     public boolean existiertNutzer(JSONObject benutzer) {
@@ -218,10 +225,19 @@ public class Server implements Runnable {
     public void stoppe() {
         this.shouldRun = false;
         bm.abspeichern();
+        // ok jetzt wirds lustig. Oben wartet der server noch auf einen client (server.accept()).
+        // also geben wir ihm einen Client.
+        try {
+            Socket s = new Socket("127.0.0.1", 7777);
+            s.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         for (ClientHandler thread : threads) {
             Logger.log("server", "Stoppe Client-Handler-" + thread.getUUID());
             thread.stoppe();
         }
+
     }
 
 }

@@ -41,6 +41,7 @@ public class Benutzer {
         benutzer.put("name", this.name);
         benutzer.put("password", this.password);
         benutzer.put("uuidOffenesSpiel", this.uuidOffenesSpiel);
+        benutzer.put("elo", this.elo);
         return benutzer;
     }
 
