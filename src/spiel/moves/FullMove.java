@@ -11,16 +11,10 @@ public class FullMove {
         this.pos = pos;
         this.mov = mov;
         if(a.getFigAtPos(pos)!=null){
-            String schlagen="";
-            if(a.getFigAtPos(pos.addMove(mov))!=null){
-                schlagen = "x";
-            } else {
-                schlagen = "-";
-            }
                 if(!(a.getFigAtPos(pos) instanceof Bauer)){
-                    this.longNotation = a.getFigAtPos(pos).toString()+pos.toString()+schlagen+pos.addMove(mov).toString();
+                    this.longNotation = pos.toString()+pos.addMove(mov).toString();
                 } else {
-                    this.longNotation = pos.toString()+schlagen+pos.addMove(mov).toString()+"todopromotion";
+                    this.longNotation = pos.toString()+pos.addMove(mov).toString()+":";
                 }
         }
     }

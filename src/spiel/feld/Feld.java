@@ -190,33 +190,22 @@ public class Feld {
     public FullMove parseMove(String a) {
         AbsPosition origin = null;
         Move move = null;
-        if (a.length() < 5 || a.length() > 6) {
+        if (a.length() < 4 || a.length() > 5) {
             return null;
         }
         if (Character.isDigit(a.charAt(1))) {
-            origin = new AbsPosition(a.substring(0, 1));
+            origin = new AbsPosition(a.substring(0, 2));
             if (origin.isPossible()) {
-                if (getFigAtPos(origin) instanceof Bauer) {
-                    AbsPosition destination = new AbsPosition(a.substring(3, 4));
-                    move = new Move(origin, destination);
-                    if (isValidMove(new FullMove(origin, move, this))) {
-                        if (move.getxOffset() == 0 && a.contains("-") || move.getxOffset() != 0 && a.contains("x")) {
+                    AbsPosition destination = new AbsPosition(a.charAt(2)+""+a.charAt(3));
+                    if(destination.isPossible()){
+                        move = new Move(origin, destination);
+                        if (isValidMove(new FullMove(origin, move, this))) {
                             return new FullMove(origin, move, this);
                         }
                     }
-                }
             }
         }
-        if (Character.isDigit(2)) {
-            origin = new AbsPosition(a.substring(1, 2));
-            if (origin.isPossible()) {
-                if (getFigAtPos(origin) instanceof Turm && a.charAt(0) == 'R' || getFigAtPos(origin) instanceof Springer && a.charAt(0) == 'N' || getFigAtPos(origin) instanceof Dame && a.charAt(0) == 'D' || getFigAtPos(origin) instanceof Laeufer && a.charAt(0) == 'B' || getFigAtPos(origin) instanceof Koenig && a.charAt(0) == 'K') {
-                    AbsPosition destination = new AbsPosition(a.substring(4,5));
-                    move = new Move(origin,destination);
-                    //if(isValidMove(new FullMove))
-                }
-            }
-        }
+
         return null;
     }
 

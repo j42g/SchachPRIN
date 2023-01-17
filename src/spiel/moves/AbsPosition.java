@@ -17,13 +17,14 @@ public class AbsPosition {
             if("abcdefgh".indexOf(square.charAt(0)) != -1 && "12345678".indexOf(square.charAt(1)) != -1) { // korrektes Format
                 this.x = square.charAt(0) - 0x61;
                 this.y = square.charAt(1) - 0x31;
-                System.out.println(x + ", " + y);
             } else {
+                System.out.println(square);
                 this.x = -1;
                 this.y = -1;
                 System.out.println("Falsches Format");
             }
         } else {
+            System.out.println(square);
             this.x = -1;
             this.y = -1;
             System.out.println("Falsches Format");

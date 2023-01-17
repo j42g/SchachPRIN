@@ -5,10 +5,10 @@ public class Bauer extends Figur {
 
     public Bauer(int farbe) {
         super(farbe);
-        moveSet.addBauerMove(1,farbe);
-        moveSet.addBauerMove(-1,farbe);
-        moveSet.addBauerMove(0,farbe);
-        moveSet.addBauerMove(0,farbe*2);
+        moveSet.addMove(1,farbe);
+        moveSet.addMove(-1,farbe);
+        moveSet.addMove(0,farbe);
+        moveSet.addMove(0,farbe*2);
     }
 
     @Override
