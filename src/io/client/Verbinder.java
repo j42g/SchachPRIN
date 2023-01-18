@@ -10,8 +10,8 @@ import java.net.Socket;
 
 public class Verbinder {
 
-    private static String serverIP = "127.0.0.1";
-    private static String serverPort = "7777";
+    private static final String serverIP = "127.0.0.1";
+    private static final int serverPort = 7777;
 
     private static Verbinder instance = null;
     private Socket server;
@@ -20,7 +20,7 @@ public class Verbinder {
 
     private Verbinder() {
         try {
-            server = new Socket("127.0.0.1", 7777);
+            server = new Socket(serverIP, serverPort);
             in = new BufferedReader(new InputStreamReader(server.getInputStream()));
             out = new PrintWriter(server.getOutputStream(), true);
             System.out.println("VERBINDUNG AUFGEBAUT");
