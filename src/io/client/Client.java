@@ -60,7 +60,6 @@ public class Client implements Runnable {
         String input;
         System.out.print("STARTE CLIENT. BEFEHLE: " + alleBefehle[0]);
         Logger.log("client", "Starte Client");
-        ArrayList<String> verfuegbareBefehle = new ArrayList<String>();
         for (int i = 1; i < alleBefehle.length; i++) {
             System.out.print(", " + alleBefehle[i]);
         }
@@ -115,37 +114,42 @@ public class Client implements Runnable {
                 }
             }
 
-            // --------------- Welche Befehle kann man verwenden ----------------
-            verfuegbareBefehle.clear();
-            if (!verbunden) {
-                verfuegbareBefehle.add("VERBINDEN");
-                verfuegbareBefehle.add("EXIT");
-            } else { // VERBUNDEN
-                if (!eingeloggt) {
-                    verfuegbareBefehle.add("ANMELDEN");
-                    verfuegbareBefehle.add("REGISTRIEREN");
-                    verfuegbareBefehle.add("TRENNEN");
-                } else { // EINGELOGGT
-                    if (!imSpiel) {
-                        verfuegbareBefehle.add("ABMELDEN");
-                        verfuegbareBefehle.add("SPIELMODI");
-                        verfuegbareBefehle.add("SPIELREGELN");
-                        verfuegbareBefehle.add("RANGLISTE");
-                    } else { // IM SPIEL
-                        verfuegbareBefehle.add("VERLASSEN");
-                        verfuegbareBefehle.add("AUFGEBEN");
-                        if (amZug) {
-                            verfuegbareBefehle.add("ZIEHEN");
-                        }
+            printCurrCommands();
+
+        }
+    }
+
+    private void printCurrCommands() {
+        ArrayList<String> verfuegbareBefehle = new ArrayList<String>();
+        verfuegbareBefehle.clear();
+        if (!verbunden) {
+            verfuegbareBefehle.add("VERBINDEN");
+            verfuegbareBefehle.add("EXIT");
+        } else { // VERBUNDEN
+            if (!eingeloggt) {
+                verfuegbareBefehle.add("ANMELDEN");
+                verfuegbareBefehle.add("REGISTRIEREN");
+                verfuegbareBefehle.add("TRENNEN");
+            } else { // EINGELOGGT
+                if (!imSpiel) {
+                    verfuegbareBefehle.add("ABMELDEN");
+                    verfuegbareBefehle.add("SPIELMODI");
+                    verfuegbareBefehle.add("SPIELREGELN");
+                    verfuegbareBefehle.add("RANGLISTE");
+                } else { // IM SPIEL
+                    verfuegbareBefehle.add("VERLASSEN");
+                    verfuegbareBefehle.add("AUFGEBEN");
+                    if (amZug) {
+                        verfuegbareBefehle.add("ZIEHEN");
                     }
                 }
             }
-            System.out.print("VERFÜGBARE BEFEHLE: " + verfuegbareBefehle.get(0));
-            for (int i = 1; i < verfuegbareBefehle.size(); i++) {
-                System.out.print(", " + verfuegbareBefehle.get(i));
-            }
-            System.out.println();
         }
+        System.out.print("VERFÜGBARE BEFEHLE: " + verfuegbareBefehle.get(0));
+        for (int i = 1; i < verfuegbareBefehle.size(); i++) {
+            System.out.print(", " + verfuegbareBefehle.get(i));
+        }
+        System.out.println();
     }
 
     private void verbinde() {
@@ -414,6 +418,7 @@ public class Client implements Runnable {
             this.farbe = fen.getInt("color");
             System.out.println("SIE SIND " + (farbe == 1 ? "WEISS" : "SCHWARZ"));
             System.out.println(feld.viewFrom(this.farbe));
+            Logger.log("Client", "Spiel startet. Farbe: " + farbe);
             MoveListener moveListener = new MoveListener(this, v);
             Thread mlThread = new Thread(moveListener);
             mlThread.start();
@@ -429,6 +434,9 @@ public class Client implements Runnable {
         if (fen.getString("type").equals("moverequest")) {
             this.feld = new Feld(fen.getString("fen"));
             System.out.println("SIE SIND AM ZUG. GEBEN SIE \"ZIEHEN\" EIN");
+        } else if (fen.getString("type").equals("gameover")) {
+            this.feld = new Feld(fen.getString("fen"));
+            endGame(fen.getInt("endcode"));
         } else {
             System.out.println("Unbekannter Fehler");
         }
@@ -469,6 +477,23 @@ public class Client implements Runnable {
         } else {
             System.out.println("Fehler im Protokoll");
         }
+    }
+
+    private void endGame(int endCode) {
+        this.imSpiel = false;
+        this.amZug = false;
+        System.out.println(feld.viewFrom(this.farbe));
+        String endMsg;
+        if (endCode == 0){
+            endMsg = "REMIE";
+        } else if (endCode == this.farbe) {
+            endMsg = "GEWONNEN";
+        } else {
+            endMsg = "VERLOREN";
+        }
+        System.out.println("SPIEL VORBEI. " + endMsg);
+        System.out.println("Farbe" + this.farbe);
+        printCurrCommands();
     }
 
     private JSONObject serverInput() {

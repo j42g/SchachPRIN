@@ -146,9 +146,9 @@ public class Feld {
 
     public int isWon() {
         if (isMate(1)) {
-            return 1;
-        } else if (isMate(-1)) {
             return -1;
+        } else if (isMate(-1)) {
+            return 1;
         }
         return 0;
     }

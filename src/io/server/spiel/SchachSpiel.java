@@ -157,13 +157,19 @@ public class SchachSpiel implements Runnable {
         }
         if (move != null) {
             feld.move(feld.parseMove(move));
+            if (feld.isDrawn()) {
+                endGame(0);
+            } else if (feld.isWon() == Feld.WEISS) {
+                endGame(1);
+            } else if (feld.isWon() == Feld.SCHWARZ) {
+                endGame(-1);
+            }
             move = null;
             isWhiteMove = !isWhiteMove;
         }
-
-
         this.move = null;
     }
+
 
     public synchronized void setMove(String move) {
         this.move = move;
@@ -212,6 +218,14 @@ public class SchachSpiel implements Runnable {
         white.setElo(neuRatingWeiss);
         black.setElo(neuRatingSchwarz);
         // TODO noch mehr stuff wahrscheinlich
+        // ------------------- Clients ------------------
+        shouldRun = false;
+        if (white != null) {
+            white.endGame(endCode);
+        }
+        if (black != null) {
+            black.endGame(endCode);
+        }
     }
 
 

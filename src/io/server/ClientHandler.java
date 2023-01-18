@@ -23,7 +23,6 @@ public class ClientHandler extends Thread {
     private boolean eingeloggt;
     private boolean imSpiel;
     private boolean amZug;
-    private boolean spielVorbei;
     private final Server server;
     private SchachSpiel game;
     private final long UUID;
@@ -237,11 +236,11 @@ public class ClientHandler extends Thread {
         this.game = schachSpiel;
     }
 
-    public void endGame() {
-        this.game = null;
+    public void endGame(int endcode) {
         this.imSpiel = false;
         this.amZug = false;
-        this.spielVorbei = true;
+        out.println(String.format("{\"type\":\"gameover\",\"fen\":\"" + game.getFen() + "\",\"endcode\":%d}", endcode));
+        this.game = null;
     }
 
     public void requestMove() {
