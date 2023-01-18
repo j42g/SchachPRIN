@@ -295,7 +295,7 @@ public class Feld {
             color = 7;
         }
         if (!kinghasMoved(color) && !rookHasMoved(color, 0) && !horizontalStripHasFigur(1, 3, color)) {
-            ArrayList<AbsPosition> a = checker.computeMoves(new AbsPosition(4, color));
+            ArrayList<AbsPosition> a = checker.computeMovesBack(new AbsPosition(4, color),false);
             if (a.contains(new AbsPosition(3, color))) {
                 if (color == 0) {
                     return QWCastling;
@@ -325,7 +325,7 @@ public class Feld {
             color = 7;
         }
         if (!kinghasMoved(color) && !rookHasMoved(color, 1) && !horizontalStripHasFigur(5, 6, color)) {
-            ArrayList<AbsPosition> a = checker.computeMoves(new AbsPosition(4, color));
+            ArrayList<AbsPosition> a = checker.computeMovesBack(new AbsPosition(4, color),true);
             if (a.contains(new AbsPosition(5, color))) {
                 if (color == 0) {
                     return KWCastling;
