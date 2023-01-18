@@ -34,10 +34,7 @@ public class Gamehandler {
     public void gameLogic() {
         while (true) {
             System.out.println(feld);
-            System.out.println(feld.isWon());
-            System.out.println(feld.isDrawn());
-            System.out.println(feld.getFiftyMoveRule());
-            System.out.println(feld.threeFoldRepetition());
+            System.out.println(feld.isKWCastling()+ " "+feld.isQWCastling()+ " "+ feld.isKBCastling() + " "+ feld.isQBCastling());
             System.out.println(feld.getAllActuallyPossibleMoves(feld.playerTurn));
             String temp = "";
             System.out.print("move: ");

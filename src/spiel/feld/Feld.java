@@ -171,7 +171,7 @@ public class Feld {
                 if (destination.isPossible()) {
                     move = new Move(origin, destination);
                     if (isValidMove(new FullMove(origin, move, this))) {
-                        if (!(getFigAtPos(origin) instanceof Bauer && (destination.getY() == 7) || destination.getY() == 0)) {
+                        if (!(getFigAtPos(origin) instanceof Bauer && (destination.getY() == 7 || destination.getY() == 0))) {
                             if (a.length() == 5) {
                                 return null;
                             }
@@ -199,7 +199,6 @@ public class Feld {
                 }
             }
         }
-
         return null;
     }
 
@@ -242,16 +241,16 @@ public class Feld {
 
     private void updateCastlingRights() {
         if (KWCastling) {
-            KWCastling = kingSideCastlePossible(1);
+            KWCastling = kingSideCastlingRight(1);
         }
         if (KBCastling) {
-            KBCastling = kingSideCastlePossible(-1);
+            KBCastling = kingSideCastlingRight(-1);
         }
         if (QWCastling) {
-            QWCastling = queenSideCastlePossible(1);
+            QWCastling = queenSideCastlingRight(1);
         }
         if (QBCastling) {
-            QBCastling = queenSideCastlePossible(-1);
+            QBCastling = queenSideCastlingRight(-1);
         }
     }
 
@@ -278,6 +277,17 @@ public class Feld {
         return true;
     }
 
+    public boolean queenSideCastlingRight(int color){
+        if (color == 1) {
+            color = 0;
+        } else {
+            color = 7;
+        }
+        if(!kinghasMoved(color) && !rookHasMoved(color,0)){
+            return true;
+        }
+        return false;
+    }
     public boolean queenSideCastlePossible(int color) {
         if (color == 1) {
             color = 0;
@@ -297,6 +307,17 @@ public class Feld {
         return false;
     }
 
+    public boolean kingSideCastlingRight(int color){
+        if (color == 1) {
+            color = 0;
+        } else {
+            color = 7;
+        }
+        if(!kinghasMoved(color) && !rookHasMoved(color,1)){
+            return true;
+        }
+        return false;
+    }
     public boolean kingSideCastlePossible(int color) {
         if (color == 1) {
             color = 0;
@@ -444,6 +465,22 @@ public class Feld {
             }
         }
         return new AbsPosition(-1, -1);
+    }
+
+    public boolean isQWCastling() {
+        return QWCastling;
+    }
+
+    public boolean isQBCastling() {
+        return QBCastling;
+    }
+
+    public boolean isKWCastling() {
+        return KWCastling;
+    }
+
+    public boolean isKBCastling() {
+        return KBCastling;
     }
 
     public int getFiftyMoveRule() {
