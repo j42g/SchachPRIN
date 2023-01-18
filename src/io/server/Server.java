@@ -70,7 +70,7 @@ public class Server implements Runnable {
     }
 
     private void addThread(Socket client1) {
-        if(shouldRun) {
+        if (shouldRun) {
             long id;
             Random gen = new Random();
             do {
@@ -180,6 +180,7 @@ public class Server implements Runnable {
         } else {
             Logger.log("server", client.getUUID() + "findet " + waitingClient.getUUID() + "durch Queue");
             schachSpiels.add(new SchachSpiel(generateGameUUID(), waitingClient, client));
+            waitingClient.starteSpiel();
             return true;
         }
     }
@@ -233,7 +234,6 @@ public class Server implements Runnable {
         }
         return false;
     }
-
 
 
     public void stoppe() {

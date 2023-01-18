@@ -113,7 +113,7 @@ public class ClientHandler extends Thread {
         }
     }
 
-    public void login(JSONObject request) {
+    private void login(JSONObject request) {
         if (!server.existiertNutzer(request)) { // benutzer existiert nicht
             out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: BENUTZER EXISTIERT NICHT\"}");
         } else {
@@ -137,7 +137,7 @@ public class ClientHandler extends Thread {
         }
     }
 
-    public void register(JSONObject request) {
+    private void register(JSONObject request) {
         if (server.existiertNutzer(request)) { // benutzer existiert nicht schon
             out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: BENUTZER EXISTIERT SCHON\"}");
         } else {
@@ -151,7 +151,7 @@ public class ClientHandler extends Thread {
         }
     }
 
-    public void modeselect(JSONObject request) {
+    private void modeselect(JSONObject request) {
         int gamemode = request.getInt("mode");
         switch (gamemode) {
             case 0 -> { // random game
@@ -183,7 +183,7 @@ public class ClientHandler extends Thread {
         }
     }
 
-    public void queue(PrintWriter out, BufferedReader in) {
+    private void queue(PrintWriter out, BufferedReader in) {
         try {
             while (shouldRun && !gegnerGefunden) {
                 if (in.ready()) {
@@ -196,6 +196,8 @@ public class ClientHandler extends Thread {
             }
             if (gegnerGefunden && shouldRun) {
                 out.println("{\"type\":\"queueready\"}");
+                server.queueGame(this);
+                starteSpiel();
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -204,7 +206,7 @@ public class ClientHandler extends Thread {
 
     }
 
-    public void leaderboard() {
+    private void leaderboard() {
         ArrayList<Benutzer> all = server.getAllNutzer();
         all.sort(new Comparator<Benutzer>() { // sortiere nach Elo
             @Override
@@ -221,7 +223,7 @@ public class ClientHandler extends Thread {
         out.println(finishedLb);
     }
 
-    public void forfeitGame() {
+    private void forfeitGame() {
         Logger.log("client-handler-" + this.UUID, "Gibt game " + this.game.getUUID());
         this.game.forfeit(this);
     }

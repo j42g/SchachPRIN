@@ -29,9 +29,9 @@ public class SchachSpiel implements Runnable {
         this.uuid = uuid;
         this.feld = new Feld();
         this.isWhiteMove = true;
-
         this.move = null;
-        if (Math.random() < 1.5) { // wer ist was TODO GERADE NUR SO FÜR DEBUG
+
+        if (Math.random() < 0.5) { // wer ist was TODO GERADE NUR SO FÜR DEBUG
             this.white = a;
             this.black = null;
         } else {
@@ -47,9 +47,10 @@ public class SchachSpiel implements Runnable {
         this.shouldRun = true;
         this.playerCount = 2;
         this.uuid = uuid;
-        this.isWhiteMove = true;
         this.feld = new Feld();
+        this.isWhiteMove = true;
         this.move = null;
+
         if (Math.random() < 0.5) {
             this.white = a;
             this.black = b;
