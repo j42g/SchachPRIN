@@ -11,8 +11,9 @@ public class Main {
 
     public static void main(String[] args) {
 
-       Gamehandler g = new Gamehandler();
-
+        Client c = new Client();
+        Thread cT = new Thread(c);
+        cT.start();
 
     }
 }

@@ -428,7 +428,6 @@ public class Feld {
                 }
             }
         }
-
         return res;
     }
 
@@ -486,7 +485,6 @@ public class Feld {
     public int getFiftyMoveRule() {
         return fiftyMoveRule;
     }
-
 
     public String viewFrom(int color) {
         if (color == WEISS) {

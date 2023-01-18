@@ -65,21 +65,7 @@ public class SchachSpiel implements Runnable {
         // TODO
     }
 
-    public synchronized boolean joinGame(ClientHandler client) {
-        if (white != null && black != null) { // spiel schon voll
-            return false;
-        } else if (white == null && black == null) { // spieler schon geleavt oder so
-            return false;
-        } else if (white == null) {
-            white = client;
-            client.giveGame(this);
-        } else {
-            black = client;
-            client.giveGame(this);
-        }
-        playerCount++;
-        return true;
-    }
+
 
     public synchronized void forfeit(ClientHandler client) {
         if (client.equals(white)) {
@@ -131,6 +117,22 @@ public class SchachSpiel implements Runnable {
         }
     }
 
+    public synchronized boolean joinGame(ClientHandler client) {
+        if (white != null && black != null) { // spiel schon voll
+            return false;
+        } else if (white == null && black == null) { // spieler schon geleavt oder so
+            return false;
+        } else if (white == null) {
+            white = client;
+            client.giveGame(this);
+        } else {
+            black = client;
+            client.giveGame(this);
+        }
+        playerCount++;
+        return true;
+    }
+
     public synchronized void leaveGame(ClientHandler client) {
         if(client.equals(white) || client.equals(black)){
             playerCount--;
@@ -175,12 +177,6 @@ public class SchachSpiel implements Runnable {
         this.move = move;
     }
 
-    public void move(FullMove a) { // Move Objekt
-
-        //this.feld.move(null, null); // Moveobject
-    }
-
-
     public void saveToFile() {
 
     }
@@ -194,7 +190,8 @@ public class SchachSpiel implements Runnable {
             if (white.equals(asker)) {
                 return 1;
             }
-        } else if (black != null){
+        }
+        if (black != null) {
             if (black.equals(asker)) {
                 return -1;
             }
