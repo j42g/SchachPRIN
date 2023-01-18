@@ -387,17 +387,18 @@ public class Client implements Runnable {
         QueueNotifier qn = new QueueNotifier();
         Thread qnThread = new Thread(qn);
         qnThread.start();
-        while (!v.queueReady()) {
+        while (true) {
             input = s.nextLine().toUpperCase();
             if (input.equals("VERLASSEN")) {
-                v.sendeJSON(new JSONObject("{\"type\":\"leavequeue\"}"));
                 qn.stoppe();
+                v.sendeJSON(new JSONObject("{\"type\":\"leavequeue\"}"));
                 return;
             } else if (input.equals("AKZEPTIEREN")) {
                 if (v.queueReady()) {
                     JSONObject antwort = v.warteAufJSON();
                     if (antwort.getString("type").equals("queueready")) {
                         starteSpiel();
+                        qn.stoppe();
                         return;
                     } else {
                         System.out.println("FEHLER IM PROTOKOLL");
@@ -405,9 +406,10 @@ public class Client implements Runnable {
                 } else {
                     System.out.println("ES WURDE NOCH KEIN GEGNER GEFUNDEN");
                 }
+            } else {
+                System.out.println("UNGÜLTIGE EINGABE");
             }
         }
-        qn.stoppe();
     }
 
     private void starteSpiel() {
@@ -492,7 +494,6 @@ public class Client implements Runnable {
             endMsg = "VERLOREN";
         }
         System.out.println("SPIEL VORBEI. " + endMsg);
-        System.out.println("Farbe" + this.farbe);
         printCurrCommands();
     }
 

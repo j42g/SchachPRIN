@@ -17,12 +17,12 @@ public class MoveListener implements Runnable {
         while (shouldRun) {
             if (v.hasMove()) {
                 client.amZug();
-                stop();
+                stoppe();
             }
         }
     }
 
-    public void stop() {
+    public void stoppe() {
         this.shouldRun = false;
     }
 

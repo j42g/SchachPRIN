@@ -157,11 +157,11 @@ public class ClientHandler extends Thread {
             case 0 -> { // random game
                 if (server.isQueueReady()) { // gegner verfügbar
                     out.println("{\"type\":\"modeconfirm\",\"mode\":0,\"ready\":true}");
-                    starteSpiel();
                     server.queueGame(this);
+                    starteSpiel();
                 } else { // muss warten
                     out.println("{\"type\":\"modeconfirm\",\"mode\":0,\"ready\":false}");
-                    starteSpiel();
+                    server.queueGame(this);
                     queue(out, in);
                 }
             }
@@ -195,8 +195,8 @@ public class ClientHandler extends Thread {
                 }
             }
             if (gegnerGefunden && shouldRun) {
+                Logger.log("Client-Handler-" + this.UUID, "Sende: " + "{\"type\":\"queueready\"}");
                 out.println("{\"type\":\"queueready\"}");
-                server.queueGame(this);
                 starteSpiel();
             }
         } catch (Exception ex) {
