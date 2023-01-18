@@ -54,7 +54,7 @@ public class ActualMoves {
             }
             return res;
         }
-        if (feld.getFigAtPos(pos) instanceof Koenig && recursion) {
+        if (feld.getFigAtPos(pos) instanceof Koenig && !recursion) {
             if (feld.queenSideCastlePossible(feld.getFigAtPos(pos).getFarbe())) {
                 pattern.addMove(-2, 0);
             } else if (feld.kingSideCastlePossible(feld.getFigAtPos(pos).getFarbe())) {
