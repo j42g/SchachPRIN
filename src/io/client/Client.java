@@ -101,6 +101,7 @@ public class Client implements Runnable {
                     } else { // IM SPIEL
                         if (input.equals("AUFGEBEN")) {
                             v.sendeJSON(new JSONObject("{\"type\":\"forfeit\"}"));
+                            endGame(this.farbe * -1);
                         }  else if (input.equals("VERLASSEN")) {
                             // TODO
                         } else if (input.equals("ZIEHEN")) {
@@ -473,7 +474,11 @@ public class Client implements Runnable {
                 MoveListener moveListener = new MoveListener(this, v);
                 Thread mlThread = new Thread(moveListener);
                 mlThread.start();
-            } else {
+            } else if (res.getString("type").equals("gameover")) {
+                this.feld = new Feld(res.getString("fen"));
+                endGame(res.getInt("endcode"));
+            }
+            else {
                 System.out.println("Unbekannter Fehler1");
             }
         } else {
