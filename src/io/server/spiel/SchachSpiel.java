@@ -2,6 +2,7 @@ package io.server.spiel;
 
 import io.Logger;
 import io.server.ClientHandler;
+import org.json.JSONObject;
 import spiel.feld.Feld;
 import spiel.feld.Quadrat;
 import spiel.moves.FullMove;
@@ -31,14 +32,13 @@ public class SchachSpiel implements Runnable {
         this.isWhiteMove = true;
         this.move = null;
 
-        if (Math.random() < 0.5) { // wer ist was TODO GERADE NUR SO FÜR DEBUG
+        if (Math.random() < 0.5) { // wer ist was
             this.white = a;
             this.black = null;
         } else {
             this.white = null;
             this.black = a;
         }
-
         a.giveGame(this);
     }
 
@@ -62,8 +62,22 @@ public class SchachSpiel implements Runnable {
         b.giveGame(this);
     }
 
-    public SchachSpiel(String json) {
-        // TODO
+    public SchachSpiel(long uuid, ClientHandler a, Spiel spiel) {
+        this.started = false;
+        this.shouldRun = true;
+        this.playerCount = 1;
+        this.uuid = uuid;
+        this.feld = new Feld(spiel.getFen());
+        this.isWhiteMove = feld.playerTurn == 1;
+        this.move = null;
+        if (spiel.getWhite().equals(a.getBenutzerName())) {
+            this.white = a;
+        } else if (spiel.getBlack().equals(a.getBenutzerName())) {
+            this.black = a;
+        } else {
+            System.out.println("Fehler beim Laden des Spiels. Nutzer ist weder weiß, noch schwarz");
+        }
+        a.giveGame(this);
     }
 
 
@@ -90,7 +104,8 @@ public class SchachSpiel implements Runnable {
         while (shouldRun) {
             switch (playerCount) {
                 case 0 -> {
-                    if (false) { // spielvorbei
+                    if (!feld.isDrawn() && feld.isWon() == 0) { // spiel nicht vorbei
+
                     }
                 }
                 case 1 -> {

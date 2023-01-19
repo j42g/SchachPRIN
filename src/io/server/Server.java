@@ -4,6 +4,7 @@ import io.Logger;
 import io.server.benutzerverwaltung.Benutzer;
 import io.server.benutzerverwaltung.BenutzerManager;
 import io.server.spiel.SchachSpiel;
+import io.server.spiel.SpielSpeicher;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -20,6 +21,7 @@ public class Server implements Runnable {
     private volatile boolean shouldRun;
 
     private final BenutzerManager bm;
+    private final SpielSpeicher spsp;
     private final ArrayList<ClientHandler> threads;
     private ClientHandler waitingClient; // random game queue
     private final ArrayList<SchachSpiel> waitingPrivate;
@@ -31,7 +33,8 @@ public class Server implements Runnable {
         this.waitingClient = null;
         this.waitingPrivate = new ArrayList<SchachSpiel>();
         this.schachSpiels = new ArrayList<SchachSpiel>();
-        this.bm = new BenutzerManager(ServerVerwaltung.filename);
+        this.bm = new BenutzerManager(ServerVerwaltung.filenameBenutzer);
+        this.spsp = new SpielSpeicher(ServerVerwaltung.filenameSpiele);
         // Spiele laden
     }
 
@@ -223,7 +226,14 @@ public class Server implements Runnable {
 
     public synchronized void createPrivate(ClientHandler client, long uuid) {
         // TODO hier muss sichergestellt werden, dass diese uuid nicht schon vorhanden ist, beziehungsweise eine Liste mit nicht verfügbaren uuids haben, sodass diese uuid nicht weiter vergeben wird.
-        this.waitingPrivate.add(new SchachSpiel(uuid, client));
+        Logger.log("server", "Erstelle Schachlobby aus Spiel");
+        if (spsp.checkIfExists(uuid)) {
+            this.waitingPrivate.add(new SchachSpiel(uuid, client, spsp.getSpiel(uuid)));
+        } else {
+            Logger.log("server", "Fehler im Server Game mit uuid: " + uuid + " existiert nicht");
+            System.out.println("Fehler im Server Game mit uuid: " + uuid + " existiert nicht");
+        }
+
     }
 
     public synchronized boolean checkIfExists(long uuid) {
