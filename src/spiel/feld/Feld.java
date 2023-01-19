@@ -85,15 +85,15 @@ public class Feld {
         }
     }
 
-    public boolean isInCheck(int color) {
+    private boolean isInCheck(int color) {
         return getAllTheoreticallyPossibleMoves(-color).contains(getKingPos(color)); //checks if king is in a position which an enemy piece can reach
     }
 
-    public boolean isMate(int color) {
+    private boolean isMate(int color) {
         return getAllActuallyPossibleMoves(color).size() == 0 && isInCheck(color); //checks if king is in checks and no moves change that
     }
 
-    public Feld copyFeld() {
+    private Feld copyFeld() {
         Feld res = new Feld(true);
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
@@ -103,7 +103,7 @@ public class Feld {
         return res;
     }
 
-    public boolean threeFoldRepetition() {
+    private boolean threeFoldRepetition() {
         int lastIndex = moveRecord.size() - 1;
         if (moveRecord.size() >= 12) {
             return moveRecord.get(lastIndex).equals(moveRecord.get(lastIndex - 4)) && moveRecord.get(lastIndex).equals(moveRecord.get(lastIndex - 8)) && moveRecord.get(lastIndex - 2).equals(moveRecord.get(lastIndex - 6)) && moveRecord.get(lastIndex - 2).equals(moveRecord.get(lastIndex - 10)) && moveRecord.get(lastIndex - 1).equals(moveRecord.get(lastIndex - 5)) && moveRecord.get(lastIndex - 1).equals(moveRecord.get(lastIndex - 9)) && moveRecord.get(lastIndex - 3).equals(moveRecord.get(lastIndex - 7)) && moveRecord.get(lastIndex - 3).equals(moveRecord.get(lastIndex - 11));
@@ -111,11 +111,11 @@ public class Feld {
         return false;
     }
 
-    public boolean fiftyMoveRuleExceeded() {
+    private boolean fiftyMoveRuleExceeded() {
         return fiftyMoveRule >= 50;
     }
 
-    public boolean insuficcientMaterial() {
+    private boolean insuficcientMaterial() {
         int[] springerlaeufer = new int[3]; //index 0 zählt springer, index 1 schwarze läufer und index 2 weiße läufer, die zweite dimension symbolisiert die farbe, 0 ist weiß und 1 schwarz
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
@@ -328,7 +328,8 @@ public class Feld {
         }
         return false;
     }
-    public boolean queenSideCastlePossible(int color) {
+
+    private boolean queenSideCastlePossible(int color) {
         if (color == 1) {
             color = 0;
         } else {
@@ -347,7 +348,7 @@ public class Feld {
         return false;
     }
 
-    public boolean kingSideCastlingRight(int color){
+    private boolean kingSideCastlingRight(int color){
         if (color == 1) {
             color = 0;
         } else {
@@ -358,7 +359,8 @@ public class Feld {
         }
         return false;
     }
-    public boolean kingSideCastlePossible(int color) {
+
+    private boolean kingSideCastlePossible(int color) {
         if (color == 1) {
             color = 0;
         } else {
@@ -376,7 +378,7 @@ public class Feld {
         return false;
     }
 
-    public boolean horizontalStripHasFigur(int x1, int x2, int y) {
+    private boolean horizontalStripHasFigur(int x1, int x2, int y) {
         for (int i = x1; i <= x2; i++) {
             if (feld[i][y].hasFigur()) {
                 return true;
@@ -388,6 +390,7 @@ public class Feld {
     public boolean isValidMove(FullMove move) {
         return isValidMove(move,null);
     }
+
     private boolean isValidMove(FullMove move, ArrayList<AbsPosition> checkerresult){
         if(checkerresult == null){
             checkerresult = checker.computeMoves(move.getPos());
@@ -408,19 +411,19 @@ public class Feld {
         return false;
     }
 
-    public boolean isInCheckAfterMove(FullMove fullMove) {
+    private boolean isInCheckAfterMove(FullMove fullMove) {
         Feld test = copyFeld();
         int color = test.getFigAtPos(fullMove.getPos()).getFarbe();
         test.noTestMove(fullMove);
         return test.isInCheck(color);
     }
 
-    public void noTestMove(FullMove fullMove) { //moves a figure with almost no checks attached for simulating if king is in check after own move (illegal)
+    private void noTestMove(FullMove fullMove) { //moves a figure with almost no checks attached for simulating if king is in check after own move (illegal)
         setFigAtPos(fullMove.getPos().addMove(fullMove.getMov()), getFigAtPos(fullMove.getPos()));
         setFigAtPos(fullMove.getPos(), null);
     }
 
-    public boolean rookHasMoved(int color, int side) { //side 0 is queenside, side 1 is kingside
+    private boolean rookHasMoved(int color, int side) { //side 0 is queenside, side 1 is kingside
         if (side == 1) {
             side = 7;
         }
@@ -432,7 +435,7 @@ public class Feld {
         return true;
     }
 
-    public boolean kinghasMoved(int color) {
+    private boolean kinghasMoved(int color) {
         if (feld[4][color].hasFigur()) {
             if (feld[4][color].getFigur() instanceof Koenig) {
                 return feld[4][color].getFigur().getHasMoved();
@@ -445,7 +448,7 @@ public class Feld {
         return moveRecord;
     }
 
-    public ArrayList<AbsPosition> getAllTheoreticallyPossibleMoves(int color) {
+    private ArrayList<AbsPosition> getAllTheoreticallyPossibleMoves(int color) {
         ArrayList<AbsPosition> res = new ArrayList<AbsPosition>();
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
@@ -483,7 +486,7 @@ public class Feld {
         return feld[pos.getX()][pos.getY()].getFigur();
     }
 
-    public void setFigAtPos(AbsPosition pos, Figur fig) {
+    private void setFigAtPos(AbsPosition pos, Figur fig) {
         feld[pos.getX()][pos.getY()].addFigur(fig);
     }
 
@@ -491,15 +494,15 @@ public class Feld {
         return enPassant;
     }
 
-    public void setEnPassant(AbsPosition enPassant) {
+    private void setEnPassant(AbsPosition enPassant) {
         this.enPassant = enPassant;
     }
 
-    public void resetEnPassant() {
+    private void resetEnPassant() {
         this.enPassant = null;
     }
 
-    public AbsPosition getKingPos(int color) {
+    private AbsPosition getKingPos(int color) {
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
                 if (feld[x][y].hasFigur()) {
@@ -653,5 +656,4 @@ public class Feld {
         board.append("\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255D\n\u2002\u2002a\u2002\u2002b\u2002\u2002c\u2002\u2002d\u2002\u2002e\u2002\u2002f\u2002\u2002g\u2002\u2002h");
         return board.toString();
     }
-
 }
