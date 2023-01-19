@@ -154,7 +154,7 @@ public class Feld {
     }
 
     public boolean isDrawn() {
-        return getAllActuallyPossibleMoves(playerTurn).size() == 0 && !isInCheck(playerTurn) || fiftyMoveRuleExceeded() || threeFoldRepetition();
+        return getAllActuallyPossibleMoves(playerTurn).size() == 0 && !isInCheck(playerTurn) || fiftyMoveRuleExceeded() || threeFoldRepetition() || insuficcientMaterial();
     }
 
     public FullMove parseMove(String a) {
@@ -202,26 +202,30 @@ public class Feld {
         return null;
     }
 
-    public void move(FullMove a) {
-        move(a.getPos(), a.getMov());
+    public boolean move(FullMove a) {
+        return move(a.getPos(), a.getMov());
     }
 
     public boolean move(AbsPosition a, Move b) {
+        updateCastlingRights();
         if (isValidMove(new FullMove(a, b, this))) {
             updateFiftyMoveRule(a, b);
-            updateCastlingRights();
             if (getFigAtPos(a) instanceof Koenig && Math.abs(b.getxOffset()) == 2) {
-                resetEnPassant();
-                if (getFigAtPos(a).getFarbe() == -1) {
-                    moveCount++;
+                if(castlingIsPossible(a,b)) {
+                    resetEnPassant();
+                    if (getFigAtPos(a).getFarbe() == -1) {
+                        moveCount++;
+                    }
+                    return castle(a,b);
                 }
-                return castle(a, b);
             } else {
                 if (getFigAtPos(a) instanceof Bauer && getFigAtPos(a.addMove(b)) == null && b.getxOffset() != 0) { //checks if the move is en passant
                     setFigAtPos(a.addMove(new Move(b.getxOffset(), 0)), null); //delets pawn that is killed with en passant
                 }
-                if (!(getFigAtPos(a) instanceof Bauer && Math.abs(b.getyOffset()) != 2)) { //places the en passant square in the appropriate place
+                if (!(getFigAtPos(a) instanceof Bauer && Math.abs(b.getyOffset()) == 2)) { //resets enPassant
                     resetEnPassant();
+                } else {
+                    setEnPassant(a.addMove(new Move(0,playerTurn)));
                 }
                 if (getFigAtPos(a) instanceof Bauer && (a.addMove(b).getY() == 7 || a.addMove(b).getY() == 0)) { //replaces the pawn with the current promotionpiece
                     setFigAtPos(a, promotionPiece);
@@ -233,6 +237,7 @@ public class Feld {
                 setFigAtPos(a, null);
                 getFigAtPos(a.addMove(b)).moved();
                 playerTurn = -playerTurn;
+
                 return true;
             }
         }
@@ -242,15 +247,23 @@ public class Feld {
     private void updateCastlingRights() {
         if (KWCastling) {
             KWCastling = kingSideCastlingRight(1);
+        } else if(!KWCastling || kingSideCastlingRight(1)){
+            getFigAtPos(getKingPos(1)).getMoveSet().getMovePattern().remove(new Move(2,0));
         }
         if (KBCastling) {
             KBCastling = kingSideCastlingRight(-1);
+        } else if(!KBCastling || kingSideCastlingRight(-1)){
+            getFigAtPos(getKingPos(-1)).getMoveSet().getMovePattern().remove(new Move(2,0));
         }
         if (QWCastling) {
             QWCastling = queenSideCastlingRight(1);
+        } else if(!QWCastling || queenSideCastlingRight(1)){
+            getFigAtPos(getKingPos(1)).getMoveSet().getMovePattern().remove(new Move(-2,0));
         }
         if (QBCastling) {
             QBCastling = queenSideCastlingRight(-1);
+        } else if(!QBCastling || queenSideCastlingRight(-1)){
+            getFigAtPos(getKingPos(-1)).getMoveSet().getMovePattern().remove(new Move(-2,0));
         }
     }
 
@@ -263,16 +276,38 @@ public class Feld {
         }
     }
 
-    private boolean castle(AbsPosition a, Move b) {
+    private boolean castlingIsPossible(AbsPosition a, Move b){
         int rookXPos = 0;
         if (b.getxOffset() > 0) {
             rookXPos = 7;
+            if(a.getY()==7){
+                if(kingSideCastlePossible(-1)){
+                    return true;
+                }
+            } else {
+                if(kingSideCastlePossible(1)){
+                    return true;
+                }
+            }
+        } else {
+            if(a.getY()==7){
+                if(queenSideCastlePossible(-1)){
+                    return true;
+                }
+            } else {
+                if(queenSideCastlePossible(1)){
+                    return true;
+                }
+            }
         }
-        int color = 1;
-        if(a.getY()==7){
-            color = -1;
-        }
+        return false;
+    }
 
+    private boolean castle(AbsPosition a, Move b) {
+        int rookXPos = 0;
+        if(b.getxOffset() >0 ){
+            rookXPos = 7;
+        }
         setFigAtPos(a.addMove(b), getFigAtPos(a));
         setFigAtPos(a, null);
         getFigAtPos(a.addMove(b)).moved();
@@ -282,7 +317,7 @@ public class Feld {
         return true;
     }
 
-    public boolean queenSideCastlingRight(int color){
+    private boolean queenSideCastlingRight(int color){
         if (color == 1) {
             color = 0;
         } else {
@@ -359,12 +394,15 @@ public class Feld {
         }
         if(checkerresult.contains(move.getPos().addMove(move.getMov()))){
             if (getFigAtPos(move.getPos()).getFarbe() == playerTurn) {
-                if (isInCheckAfterMove(move)) {
-                    return false;
+                if (!isInCheckAfterMove(move)) {
+                    if(getFigAtPos(move.getPos())instanceof Koenig && Math.abs(move.getMov().getxOffset()) == 2){
+                        if(castlingIsPossible(move.getPos(),move.getMov())){
+                            return true;
+                        }
+                        return false;
+                    }
+                    return true;
                 }
-                return true;
-            } else {
-                return false;
             }
         }
         return false;

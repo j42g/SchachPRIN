@@ -23,6 +23,7 @@ public class ActualMoves {
             System.out.println("no figure at requested position, computeMovesBack() error");
             return new ArrayList<AbsPosition>();
         }
+
         ArrayList<AbsPosition> res = new ArrayList<AbsPosition>();
         MovePattern pattern = feld.getFigAtPos(pos).getMoveSet();
         if (feld.getFigAtPos(pos) instanceof Bauer) {
@@ -41,7 +42,6 @@ public class ActualMoves {
                             if (Math.abs(box.getyOffset()) == 2) {
                                 if (res.contains(new AbsPosition(pos.addMove(new Move(0, feld.getFigAtPos(pos).getFarbe()))))) {
                                     res.add(pos.addMove(box));
-                                    feld.setEnPassant(new AbsPosition(pos.addMove(new Move(0, feld.getFigAtPos(pos).getFarbe()))));
                                 }
                             } else {
                                 res.add(pos.addMove(box));

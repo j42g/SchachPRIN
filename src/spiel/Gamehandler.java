@@ -12,10 +12,9 @@ public class Gamehandler {
     Scanner s = new Scanner(System.in);
 
     Feld feld;
-
     public Gamehandler() {
-
-        feld = new Feld("r3k2r/pppb1p1p/3p1qp1/2b1p1N1/2BnP3/N2P4/PPPB1PPP/R3K2R b KQkq h6 1 10");
+        feld = new Feld();
+        //feld = new Feld("r3k2r/pppb1p1p/3p1qp1/2b1p1N1/2BnP3/N2P4/PPPB1PPP/R3K2R b KQkq h6 1 10");
         gameLogic();
     }
 
