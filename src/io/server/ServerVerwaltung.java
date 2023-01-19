@@ -6,7 +6,8 @@ import java.util.Scanner;
 
 public class ServerVerwaltung implements Runnable {
 
-    public static final String filename = "nutzer.txt";
+    public static final String filenameBenutzer = "nutzer.txt";
+    public static final String filenameSpiele = "spiele.txt";
 
     private boolean aktiv;
 

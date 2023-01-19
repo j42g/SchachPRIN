@@ -124,6 +124,7 @@ public class ClientHandler extends Thread {
                 if (benutzer.hatAktivesSpiel()) {
                     if (server.checkIfExists(benutzer.getUuidOffenesSpiel())) {
                         server.joinPrivate(this, benutzer.getUuidOffenesSpiel());
+                        starteSpiel();
                     } else {
                         server.createPrivate(this, benutzer.getUuidOffenesSpiel());
                     }
@@ -206,6 +207,10 @@ public class ClientHandler extends Thread {
 
     }
 
+    public void gegnerGefunden() {
+        this.gegnerGefunden = true;
+    }
+
     private void leaderboard() {
         ArrayList<Benutzer> all = server.getAllNutzer();
         all.sort(new Comparator<Benutzer>() { // sortiere nach Elo
@@ -277,8 +282,8 @@ public class ClientHandler extends Thread {
         return this.game;
     }
 
-    public void gegnerGefunden() {
-        this.gegnerGefunden = true;
+    public String getBenutzerName() {
+        return this.benutzer.getName();
     }
 
     public void terminate() { // diese funktion heißt client schließt die Verbindung
