@@ -229,7 +229,7 @@ public class ClientHandler extends Thread {
     }
 
     private void forfeitGame() {
-        Logger.log("client-handler-" + this.UUID, "Gibt game " + this.game.getUUID());
+        Logger.log("client-handler-" + this.UUID, "Gibt game " + this.game.getUUID() + "auf");
         this.game.forfeit(this);
     }
 

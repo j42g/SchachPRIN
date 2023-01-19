@@ -17,8 +17,8 @@ public class SchachSpiel implements Runnable {
     private volatile int playerCount;
     private volatile String move; // muss noch zum Move Objekt gemacht werden
 
-    private long uuid;
-    private Feld feld;
+    private final long uuid;
+    private final Feld feld;
     private boolean isWhiteMove;
     private ClientHandler white;
     private ClientHandler black;
