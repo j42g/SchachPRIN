@@ -15,7 +15,7 @@ public class Gamehandler {
 
     public Gamehandler() {
 
-        feld = new Feld("r1b1k2r/pppp1p1p/5qp1/2b1p1N1/2BnP3/8/PPPP1PPP/RNB1K2R w KQkq h3 2 8");
+        feld = new Feld("r3k2r/pppb1p1p/3p1qp1/2b1p1N1/2BnP3/N2P4/PPPB1PPP/R3K2R b KQkq h6 1 10");
         gameLogic();
     }
 

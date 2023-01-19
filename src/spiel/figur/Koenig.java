@@ -14,6 +14,8 @@ public class Koenig extends Figur {
         moveSet.addMove(1,-1);
         moveSet.addMove(-1,1);
         moveSet.addMove(-1,-1);
+        moveSet.addMove(2,0);
+        moveSet.addMove(-2,0);
     }
 
     @Override

@@ -268,6 +268,11 @@ public class Feld {
         if (b.getxOffset() > 0) {
             rookXPos = 7;
         }
+        int color = 1;
+        if(a.getY()==7){
+            color = -1;
+        }
+
         setFigAtPos(a.addMove(b), getFigAtPos(a));
         setFigAtPos(a, null);
         getFigAtPos(a.addMove(b)).moved();
@@ -324,9 +329,8 @@ public class Feld {
         } else {
             color = 7;
         }
-        if (!kinghasMoved(color) && !rookHasMoved(color, 1) && !horizontalStripHasFigur(5, 6, color)) {
-            ArrayList<AbsPosition> a = checker.computeMovesBack(new AbsPosition(4, color),true);
-            if (a.contains(new AbsPosition(5, color))) {
+        if (!kinghasMoved(color) && !rookHasMoved(color, 1) && !horizontalStripHasFigur(5, 6, color)) {;
+            if(!isInCheckAfterMove(new FullMove(new AbsPosition(4,color),new Move(1,0),this)) || !isInCheckAfterMove(new FullMove(new AbsPosition(4,color),new Move(2,0),this))){
                 if (color == 0) {
                     return KWCastling;
                 } else {
@@ -347,7 +351,13 @@ public class Feld {
     }
 
     public boolean isValidMove(FullMove move) {
-        if (checker.computeMoves(move.getPos()).contains(move.getPos().addMove(move.getMov()))) {
+        return isValidMove(move,null);
+    }
+    private boolean isValidMove(FullMove move, ArrayList<AbsPosition> checkerresult){
+        if(checkerresult == null){
+            checkerresult = checker.computeMoves(move.getPos());
+        }
+        if(checkerresult.contains(move.getPos().addMove(move.getMov()))){
             if (getFigAtPos(move.getPos()).getFarbe() == playerTurn) {
                 if (isInCheckAfterMove(move)) {
                     return false;
@@ -420,7 +430,7 @@ public class Feld {
                         ArrayList<AbsPosition> temp = checker.computeMoves(new AbsPosition(x, y));
                         for (AbsPosition box : temp) {
                             FullMove temp2 = new FullMove(new AbsPosition(x, y), new Move(new AbsPosition(x, y), box), this);
-                            if (isValidMove(temp2)) {
+                            if (isValidMove(temp2,temp)) {
                                 res.add(temp2);
                             }
                         }
