@@ -90,7 +90,6 @@ public class ActualMoves {
             }
 
         }
-
         int i = 0;
         while (i != res.size()) {
             if (res.get(i).isPossible()) {
@@ -99,20 +98,6 @@ public class ActualMoves {
                 res.remove(i);
             }
         }
-        if (!recursion) {
-            if (feld.getFigAtPos(pos) instanceof Koenig) {
-                ArrayList<AbsPosition> enemyPos = feld.getAllTheoreticallyPossibleMoves(-feld.getFigAtPos(pos).getFarbe());
-                i = 0;
-                while (i != res.size()) {
-                    if (enemyPos.contains(res.get(i))) {
-                        res.remove(res.get(i));
-                    } else {
-                        i++;
-                    }
-                }
-            }
-        }
-
         return res;
     }
 }

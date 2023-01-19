@@ -15,7 +15,7 @@ public class Gamehandler {
 
     public Gamehandler() {
 
-        feld = new Feld();
+        feld = new Feld("r1b1k2r/pppp1p1p/5qp1/2b1p1N1/2BnP3/8/PPPP1PPP/RNB1K2R w KQkq h3 2 8");
         gameLogic();
     }
 
@@ -34,7 +34,8 @@ public class Gamehandler {
     public void gameLogic() {
         while (true) {
             System.out.println(feld);
-            System.out.println(feld.isKWCastling()+ " "+feld.isQWCastling()+ " "+ feld.isKBCastling() + " "+ feld.isQBCastling());
+            System.out.println(feld.isWon() + " "+feld.isDrawn());
+            System.out.println(feld.toFen());
             System.out.println(feld.getAllActuallyPossibleMoves(feld.playerTurn));
             String temp = "";
             System.out.print("move: ");
