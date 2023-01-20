@@ -26,7 +26,7 @@ public class Verbinder {
             System.out.println("VERBINDUNG AUFGEBAUT");
         } catch (Exception ex) {
             ex.printStackTrace();
-            System.out.println("FEHLER BEIM VERBINDEN");
+            System.out.println("FEHLER BEIM VERBINDEN. STARTEN SIE DEN CLIENT NEU");
         }
     }
 

@@ -184,6 +184,7 @@ public class Server implements Runnable {
             Logger.log("server", client.getUUID() + "findet " + waitingClient.getUUID() + "durch Queue");
             schachSpiels.add(new SchachSpiel(generateGameUUID(), waitingClient, client));
             waitingClient.gegnerGefunden();
+            waitingClient = null;
             return true;
         }
     }

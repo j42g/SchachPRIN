@@ -474,13 +474,12 @@ public class Client implements Runnable {
                 MoveListener moveListener = new MoveListener(this, v);
                 Thread mlThread = new Thread(moveListener);
                 mlThread.start();
-            } else if (res.getString("type").equals("gameover")) {
-                this.feld = new Feld(res.getString("fen"));
-                endGame(res.getInt("endcode"));
-            }
-            else {
+            } else {
                 System.out.println("Unbekannter Fehler1");
             }
+        } else if (res.getString("type").equals("gameover")) {
+            this.feld = new Feld(res.getString("fen"));
+            endGame(res.getInt("endcode"));
         } else {
             System.out.println("Fehler im Protokoll");
         }
