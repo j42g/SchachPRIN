@@ -2,12 +2,16 @@ package io.server.spiel;
 
 import io.Logger;
 import io.server.ClientHandler;
+import io.server.Server;
 import org.json.JSONObject;
 import spiel.feld.Feld;
 import spiel.feld.Quadrat;
 import spiel.moves.FullMove;
 
 public class SchachSpiel implements Runnable {
+
+
+    private final Server server;
 
     // Elo dingens
     private static final int k = 20;
@@ -21,9 +25,13 @@ public class SchachSpiel implements Runnable {
     private final Feld feld;
     private boolean isWhiteMove;
     private ClientHandler white;
+    private String whiteName;
     private ClientHandler black;
+    private String blackName;
 
     public SchachSpiel(long uuid, ClientHandler a) { // private lobby wird erstellt
+        this.server = Server.getServer();
+
         this.started = false;
         this.shouldRun = true;
         this.playerCount = 1;
@@ -33,16 +41,20 @@ public class SchachSpiel implements Runnable {
         this.move = null;
 
         if (Math.random() < 0.5) { // wer ist was
-            this.white = a;
             this.black = null;
+            this.white = a;
+            this.whiteName = a.getBenutzerName();
         } else {
             this.white = null;
             this.black = a;
+            this.blackName = a.getBenutzerName();
         }
         a.giveGame(this);
     }
 
     public SchachSpiel(long uuid, ClientHandler a, ClientHandler b) {
+        this.server = Server.getServer();
+
         this.started = false;
         this.shouldRun = true;
         this.playerCount = 2;
@@ -53,16 +65,22 @@ public class SchachSpiel implements Runnable {
 
         if (Math.random() < 0.5) {
             this.white = a;
+            this.whiteName = a.getBenutzerName();
             this.black = b;
+            this.blackName = b.getBenutzerName();
         } else {
             this.white = b;
+            this.whiteName = b.getBenutzerName();
             this.black = a;
+            this.blackName = a.getBenutzerName();
         }
         a.giveGame(this);
         b.giveGame(this);
     }
 
     public SchachSpiel(long uuid, ClientHandler a, Spiel spiel) {
+        this.server = Server.getServer();
+
         this.started = false;
         this.shouldRun = true;
         this.playerCount = 1;
@@ -79,8 +97,6 @@ public class SchachSpiel implements Runnable {
         }
         a.giveGame(this);
     }
-
-
 
     public synchronized void forfeit(ClientHandler client) {
         if (client.equals(white)) {
@@ -105,7 +121,9 @@ public class SchachSpiel implements Runnable {
             switch (playerCount) {
                 case 0 -> {
                     if (!feld.isDrawn() && feld.isWon() == 0) { // spiel nicht vorbei
-
+                        server.speichereSpiel(whiteName, blackName, uuid, feld.toFen());
+                    } else {
+                        return;
                     }
                 }
                 case 1 -> {
@@ -140,9 +158,11 @@ public class SchachSpiel implements Runnable {
             return false;
         } else if (white == null) {
             white = client;
+            whiteName = client.getBenutzerName();
             client.giveGame(this);
         } else {
             black = client;
+            blackName = client.getBenutzerName();
             client.giveGame(this);
         }
         playerCount++;

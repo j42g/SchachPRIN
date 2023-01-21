@@ -4,6 +4,7 @@ import io.Logger;
 import io.server.benutzerverwaltung.Benutzer;
 import io.server.benutzerverwaltung.BenutzerManager;
 import io.server.spiel.SchachSpiel;
+import io.server.spiel.Spiel;
 import io.server.spiel.SpielSpeicher;
 import org.json.JSONObject;
 
@@ -86,11 +87,8 @@ public class Server implements Runnable {
         } // das if brauch man um den server zu schließen und das server.accept() zu beenden
     }
 
-    private synchronized void speichereSpiel(String fen) {
-        // TODO implementieren
-        // Speichern: FEN, Spieler, welcher Spieler welche Farbe hat
-        // format JSON
-        // Dateiname als static field etc.
+    public synchronized void speichereSpiel(String whiteName, String blackName, long uuid, String fen) {
+        spsp.addSpiel(new Spiel(whiteName, blackName, uuid, fen));
     }
 
     private boolean isClientUUIDFree(long id) {
@@ -246,10 +244,10 @@ public class Server implements Runnable {
         return false;
     }
 
-
     public void stoppe() {
         this.shouldRun = false;
         bm.abspeichern();
+        spsp.abspeichern();
         // ok jetzt wirds lustig. Oben wartet der server noch auf einen client (server.accept()).
         // also geben wir ihm einen Client.
         try {

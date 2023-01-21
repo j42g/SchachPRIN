@@ -49,6 +49,11 @@ public class SpielSpeicher {
         return null;
     }
 
+    public void addSpiel(Spiel spiel) {
+        this.spiele.add(spiel);
+
+    }
+
     public void abspeichern() {
         JSONArray a = new JSONArray();
         for (Spiel s : spiele) {

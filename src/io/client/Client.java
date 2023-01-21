@@ -16,7 +16,7 @@ import java.util.Scanner;
 public class Client implements Runnable {
 
     private static final String[] alleSpielmodi = new String[]{"RANDOM GEGNER", "PRIVATES SPIEL ERSTELLEN", "PRIVATEM SPIEL BEITRETEN"};
-    private static final String[] alleBefehle = new String[]{"VERBINDEN", "EXIT", "TRENNEN", "ANMELDEN", "REGISTRIEREN", "ABMELDEN", "EXIT", "SPIELMODI", "SPIELREGELN", "RANGLISTE", "ZIEHEN", "AUFGEBEN", "VERLASSEN"};
+    private static final String[] alleBefehle = new String[]{"VERBINDEN", "EXIT", "TRENNEN", "ANMELDEN", "REGISTRIEREN", "ABMELDEN", "EXIT", "SPIELMODI", "SPIELREGELN", "RANGLISTE", "ZIEHEN", "AUFGEBEN", "TERMINATE"};
     private static final String spielRegeln = "Ziel des Spiels \nZiel eines jeden Spieles ist es, den gegnerischen König \nso anzugreifen, dass er nicht mehr verteidigt werden \nkann und somit im nächsten Zug geschlagen werden könnte.\nDiese Stellung heißt Matt. Das Ziel ist es also, den Gegner \nmattzusetzen, bevor er es tut.\n\nGrundlegende Regeln\nDer König ist die wichtigste Figur beim Schach. Ein Königs-\nangriff, auch Schach genannt, muss unverzüglich abgewehrt\nwerden. Das Spiel Schach wird auf einem Brett mit 64 Feldern\ngespielt. Ein Spieler bewegt die weißen Steine, der andere\ndie schwarzen. Es muss immer abwechselnd gezogen werden.\nWeiß beginnt. Nur gegnerische Steine können geschlagen wer-\nden. Ein geschlagener Stein ist aus dem Spiel.\n\nGangart der Figuren\n\nSpringer" + "\u2658 \n"+ "Der Springer kann wie im Bild angegeben ziehen. Im Gegen-\nsatz zu allen anderen Figuren kann er andere Steine über-\nspringen. Er zieht immer zwei Felder horizontal und ein Feld\nvertikal oder zwei Felder vertikal und ein Feld horizontal.\n\nLäufer"+"\u2657 \n"+ "Läufer ziehen diagonal beliebig weit über das Brett, wobei \nsie nicht über andere Figuren hinweg ziehen dürfen. Aufgrund\nder diagonalen Zugweise kann ein Läufer nur Felder gleicher\nFeldfarbe erreichen. Dies bedeutet eine Einschränkung seiner\nZugmöglichkeiten und damit eine Schwäche des Läufers.\n\nTurm"+ "\u2656\n"+ "Ein Turm kann sich sowohl horizontal als auch vertikal über\neine beliebige Anzahl von Feldern bewegen. Er darf auf jedes\nfreie Feld in jeder Richtung linear ziehen, ohne jedoch über\nandere Figuren zu springen. Die einzige Ausnahme davon bildet\ndie Rochade, in deren Verlauf der Turm einmalig über den König\nspringt.\n\nDame"+ "\u2655 \n"+"Die Dame darf auf jedes freie Feld derselben Linie, Reihe oder\nDiagonale ziehen, ohne jedoch über andere Figuren zu springen\nund vereint somit die Wirkung eines Turms und eines Läufers in\nsich. Damit ist die Dame die beweglichste aller Figuren.\n\nBauer"+ "\u2659 \n"+ "Der Bauer ist die einzige Figur, die nicht rückwärts ziehe\nkann. Ebenso ist der Bauer die einzige Figur, die anders\nschlägt als zieht: er schlägt immer diagonal, zieht aber\ngerade.\n\nKönig" +
             "\u2654 \n"+"Der König kann jeweils ein Feld in jede Richtung gehen.\nDamit kann er alle Felder des Schachbretts erreichen. Wegen\nseiner kleineSÜn Reichweite benötigt er dazu aber viele Züge.\nDer König darf kein bedrohtes Feld betreten.\n\nRochade\nBei einer Rochade tauschen König und Turm die Plätze. Der\nSpieler muss immer den König zuerst bewegen." +
             "Bei der kurzen-\noder auch kleinen Rochade von Weiß, zieht der König von e1\nnach g1 und der Turm von h1 nach f1. Für Schwarz entsprechend\nKönig e8-g8 + Turm h8-f8." +
@@ -63,12 +63,16 @@ public class Client implements Runnable {
         for (int i = 1; i < alleBefehle.length; i++) {
             System.out.print(", " + alleBefehle[i]);
         }
-        System.out.println("\nVERFÜGBARE BEFEHLE: VERBINDEN, EXIT");
+        System.out.println("\nVERFÜGBARE BEFEHLE: VERBINDEN, EXIT, TERMINATE");
         while (true) {
             input = s.nextLine().toUpperCase();
             if (!Arrays.asList(alleBefehle).contains(input)) {
                 System.out.println("UNBEKANNTER BEFEHL");
                 continue;
+            }
+
+            if (input.equals("TERMINATE")) {
+                v.sendeJSON(new JSONObject("{\"type\":\"terminate\"}"));
             }
 
             // LOGIK
@@ -102,8 +106,6 @@ public class Client implements Runnable {
                         if (input.equals("AUFGEBEN")) {
                             v.sendeJSON(new JSONObject("{\"type\":\"forfeit\"}"));
                             endGame(this.farbe * -1);
-                        }  else if (input.equals("VERLASSEN")) {
-                            // TODO
                         } else if (input.equals("ZIEHEN")) {
                             if (amZug) {
                                 ziehen();
@@ -114,7 +116,6 @@ public class Client implements Runnable {
                     }
                 }
             }
-
             printCurrCommands();
 
         }
@@ -122,7 +123,7 @@ public class Client implements Runnable {
 
     private void printCurrCommands() {
         ArrayList<String> verfuegbareBefehle = new ArrayList<String>();
-        verfuegbareBefehle.clear();
+        verfuegbareBefehle.add("TERMINATE");
         if (!verbunden) {
             verfuegbareBefehle.add("VERBINDEN");
             verfuegbareBefehle.add("EXIT");
@@ -138,7 +139,6 @@ public class Client implements Runnable {
                     verfuegbareBefehle.add("SPIELREGELN");
                     verfuegbareBefehle.add("RANGLISTE");
                 } else { // IM SPIEL
-                    verfuegbareBefehle.add("VERLASSEN");
                     verfuegbareBefehle.add("AUFGEBEN");
                     if (amZug) {
                         verfuegbareBefehle.add("ZIEHEN");
