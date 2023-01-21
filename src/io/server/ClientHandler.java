@@ -247,6 +247,7 @@ public class ClientHandler extends Thread {
         this.amZug = false;
         out.println(String.format("{\"type\":\"gameover\",\"fen\":\"" + game.getFen() + "\",\"endcode\":%d}", endcode));
         this.game = null;
+        this.gegnerGefunden = false; // queue resetten
     }
 
     public void requestMove() {
