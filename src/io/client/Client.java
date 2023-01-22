@@ -40,6 +40,10 @@ public class Client implements Runnable {
     private Verbinder v;
     private Feld feld;
 
+    private QueueNotifier queueNotifier;
+    private MoveListener moveListener;
+
+
     private boolean verbunden;
     private boolean eingeloggt;
     private boolean imSpiel;
@@ -72,7 +76,8 @@ public class Client implements Runnable {
             }
 
             if (input.equals("TERMINATE")) {
-                v.sendeJSON(new JSONObject("{\"type\":\"terminate\"}"));
+                terminate();
+                return;
             }
 
             // LOGIK
@@ -153,6 +158,16 @@ public class Client implements Runnable {
         System.out.println();
     }
 
+    private void terminate() {
+        v.sendeJSON(new JSONObject("{\"type\":\"terminate\"}"));
+        if (moveListener != null) {
+            moveListener.stoppe();
+        }
+        if (queueNotifier != null) {
+            queueNotifier.stoppe();
+        }
+    }
+
     private void verbinde() {
         this.verbunden = true;
         this.v = Verbinder.getInstance();
@@ -206,7 +221,7 @@ public class Client implements Runnable {
                     if (antwort.getLong("opengame") != -1) {
                         Logger.log("client", "Offenes Spiel gefunden");
                         System.out.println("SIE HABEN NOCH EIN OFFENES SPIEL. FALLS SIE EIN ANDERES SPIEL SPIELEN WOLLEN, MÜSSEN SIE DIESES ZUNÄCHST FERTIG SPIELEN ODER AUFGEBEN");
-                        this.imSpiel = true;
+                        starteSpiel();
                     }
                     return;
                 } else {
@@ -385,13 +400,13 @@ public class Client implements Runnable {
         System.out.println("SIE BEFINDEN SICH IN DER QUEUE. UM DIE QUEUE ZU VERLASSEN GEBEN SIE \"VERLASSEN\" EIN");
         Scanner s = new Scanner(System.in);
         String input;
-        QueueNotifier qn = new QueueNotifier();
-        Thread qnThread = new Thread(qn);
+        queueNotifier = new QueueNotifier();
+        Thread qnThread = new Thread(queueNotifier);
         qnThread.start();
         while (true) {
             input = s.nextLine().toUpperCase();
             if (input.equals("VERLASSEN")) {
-                qn.stoppe();
+                queueNotifier.stoppe();
                 v.sendeJSON(new JSONObject("{\"type\":\"leavequeue\"}"));
                 return;
             } else if (input.equals("AKZEPTIEREN")) {
@@ -399,7 +414,7 @@ public class Client implements Runnable {
                     JSONObject antwort = v.warteAufJSON();
                     if (antwort.getString("type").equals("queueready")) {
                         starteSpiel();
-                        qn.stoppe();
+                        queueNotifier.stoppe();
                         return;
                     } else {
                         System.out.println("FEHLER IM PROTOKOLL");
@@ -422,7 +437,7 @@ public class Client implements Runnable {
             System.out.println("SIE SIND " + (farbe == 1 ? "WEISS" : "SCHWARZ"));
             System.out.println(feld.viewFrom(this.farbe));
             Logger.log("Client", "Spiel startet. Farbe: " + farbe);
-            MoveListener moveListener = new MoveListener(this, v);
+            moveListener = new MoveListener(this, v);
             Thread mlThread = new Thread(moveListener);
             mlThread.start();
         } else {
@@ -471,7 +486,7 @@ public class Client implements Runnable {
                 feld.move(feld.parseMove(move));
                 System.out.println(feld.viewFrom(this.farbe));
                 amZug = false;
-                MoveListener moveListener = new MoveListener(this, v);
+                moveListener = new MoveListener(this, v);
                 Thread mlThread = new Thread(moveListener);
                 mlThread.start();
             } else {

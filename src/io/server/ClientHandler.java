@@ -120,19 +120,19 @@ public class ClientHandler extends Thread {
             if (this.benutzer == null) { // passwort falsch
                 out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: PASSWORT FALSCH\"}");
             } else { // alles korrekt
+                out.println(String.format("{\"type\":\"authresponse\",\"success\":true,\"opengame\":%d}", benutzer.getUuidOffenesSpiel()));
+                eingeloggt = true;
+                // hat Nutzer noch ein Spiel?
                 if (benutzer.hatAktivesSpiel()) {
+                    Logger.log("CliendHandler-" + this.UUID, "Client hat offenes Spiel");
                     if (server.checkIfExists(benutzer.getUuidOffenesSpiel())) {
                         server.joinPrivate(this, benutzer.getUuidOffenesSpiel());
-                        starteSpiel();
                     } else {
                         server.createPrivate(this, benutzer.getUuidOffenesSpiel());
                     }
-                    // TODO
-                } else {
-                    out.println("{\"type\":\"authresponse\",\"success\":true,\"opengame\":-1}");
+                    starteSpiel();
                 }
 
-                eingeloggt = true;
             }
         }
     }

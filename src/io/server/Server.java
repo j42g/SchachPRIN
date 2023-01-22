@@ -87,8 +87,9 @@ public class Server implements Runnable {
         } // das if brauch man um den server zu schließen und das server.accept() zu beenden
     }
 
-    public synchronized void speichereSpiel(String whiteName, String blackName, long uuid, String fen) {
-        spsp.addSpiel(new Spiel(whiteName, blackName, uuid, fen));
+    public synchronized void speichereSpiel(SchachSpiel spiel) {
+        this.schachSpiels.remove(spiel);
+        spsp.addSpiel(new Spiel(spiel.getWhiteName(), spiel.getBlackName(), spiel.getUUID(), spiel.getFen()));
     }
 
     private boolean isClientUUIDFree(long id) {
@@ -244,10 +245,17 @@ public class Server implements Runnable {
         return false;
     }
 
+    public synchronized void endGame(SchachSpiel schachSpiel) {
+        for (SchachSpiel game : schachSpiels) {
+            if (game.getUUID() == schachSpiel.getUUID()) {
+                schachSpiels.remove(schachSpiel);
+                return;
+            }
+        }
+    }
+
     public void stoppe() {
         this.shouldRun = false;
-        bm.abspeichern();
-        spsp.abspeichern();
         // ok jetzt wirds lustig. Oben wartet der server noch auf einen client (server.accept()).
         // also geben wir ihm einen Client.
         try {
@@ -260,6 +268,14 @@ public class Server implements Runnable {
             Logger.log("server", "Stoppe Client-Handler-" + thread.getUUID());
             thread.stoppe();
         }
+        for (SchachSpiel thread : schachSpiels) {
+            Logger.log("server", "Stoppe SchachSpiel-" + thread.getUUID());
+            thread.stoppe();
+        }
+
+        bm.abspeichern();
+        spsp.abspeichern();
+
 
     }
 
