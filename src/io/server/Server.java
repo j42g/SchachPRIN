@@ -210,7 +210,7 @@ public class Server implements Runnable {
         for (int i = 0; i < waitingPrivate.size(); i++) {
             if (waitingPrivate.get(i).getUUID() == uuid) {
                 waitingPrivate.get(i).joinGame(client);
-                waitingPrivate.remove(i);
+                schachSpiels.add(waitingPrivate.remove(i));
                 Logger.log("server", client.getUUID() + " tritt " + uuid + " bei");
                 return true;
             }
@@ -237,7 +237,7 @@ public class Server implements Runnable {
     }
 
     public synchronized boolean checkIfExists(long uuid) {
-        for (SchachSpiel game : schachSpiels) {
+        for (SchachSpiel game : waitingPrivate) {
             if (game.getUUID() == uuid) {
                 return true;
             }
