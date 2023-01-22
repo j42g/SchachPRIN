@@ -446,6 +446,7 @@ public class Client implements Runnable {
     }
 
     public void amZug() { // wird aufgerufen, wenn der Gegner einen Zug gemacht hat
+        Logger.log("client", "Zug request");
         this.amZug = true;
         JSONObject fen = v.warteAufJSON();
         if (fen.getString("type").equals("moverequest")) {
@@ -500,8 +501,11 @@ public class Client implements Runnable {
     }
 
     private void aufgeben() {
+        moveListener.stoppe();
+        Logger.log("client", "Spiel aufgeben");
         v.sendeJSON(new JSONObject("{\"type\":\"forfeit\"}"));
         v.warteAufJSON(); // endgame msg abfangen
+        Logger.log("client", "Dummy Nachricht empfangen");
         endGame(this.farbe * -1);
     }
 

@@ -245,6 +245,7 @@ public class ClientHandler extends Thread {
     public void endGame(int endcode) {
         this.imSpiel = false;
         this.amZug = false;
+        Logger.log("ClientHandler-" + this.UUID, "Sende gameover: " + String.format("{\"type\":\"gameover\",\"fen\":\"" + game.getFen() + "\",\"endcode\":%d}", endcode));
         out.println(String.format("{\"type\":\"gameover\",\"fen\":\"" + game.getFen() + "\",\"endcode\":%d}", endcode));
         this.game = null;
         this.gegnerGefunden = false; // queue resetten
@@ -257,12 +258,14 @@ public class ClientHandler extends Thread {
             } catch (InterruptedException e) {}
         }
         this.amZug = true;
+        Logger.log("ClientHandler-" + this.UUID, "Sende moverequest: " + "{\"type\":\"moverequest\",\"fen\":\"" + game.getFen() + "\"}");
         out.println("{\"type\":\"moverequest\",\"fen\":\"" + game.getFen() + "\"}");
     }
 
     public void move(JSONObject request) {
         this.game.setMove(request.getString("move"));
         this.amZug = false;
+        Logger.log("ClientHandler-" + this.UUID, "Sende movereponse: " + "{\"type\":\"moveresponse\",\"success\":true}");
         out.println("{\"type\":\"moveresponse\",\"success\":true}");
     }
 
