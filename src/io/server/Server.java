@@ -226,6 +226,7 @@ public class Server implements Runnable {
 
     public synchronized void createPrivate(ClientHandler client, long uuid) {
         // TODO hier muss sichergestellt werden, dass diese uuid nicht schon vorhanden ist, beziehungsweise eine Liste mit nicht verfügbaren uuids haben, sodass diese uuid nicht weiter vergeben wird.
+        // lass ich aus wahrscheinlichkeitsgründen mal aus
         Logger.log("server", "Erstelle Schachlobby aus Spiel");
         if (spsp.checkIfExists(uuid)) {
             this.waitingPrivate.add(new SchachSpiel(uuid, client, spsp.getSpiel(uuid)));
