@@ -109,8 +109,7 @@ public class Client implements Runnable {
                         }
                     } else { // IM SPIEL
                         if (input.equals("AUFGEBEN")) {
-                            v.sendeJSON(new JSONObject("{\"type\":\"forfeit\"}"));
-                            endGame(this.farbe * -1);
+                            aufgeben();
                         } else if (input.equals("ZIEHEN")) {
                             if (amZug) {
                                 ziehen();
@@ -498,6 +497,12 @@ public class Client implements Runnable {
         } else {
             System.out.println("Fehler im Protokoll");
         }
+    }
+
+    private void aufgeben() {
+        v.sendeJSON(new JSONObject("{\"type\":\"forfeit\"}"));
+        v.warteAufJSON(); // endgame msg abfangen
+        endGame(this.farbe * -1);
     }
 
     private void endGame(int endCode) {
