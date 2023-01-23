@@ -11,9 +11,6 @@ public class FullMove {
     public FullMove(AbsPosition pos, Move mov, Feld a){
         this.pos = pos;
         this.mov = mov;
-        if(a.getFigAtPos(pos)==null){
-            System.out.println("Fullmove constructor error, no Figure at position");
-        }
         this.promotionpiece = "";
     }
     public FullMove(AbsPosition pos, Move mov, Feld a, String promo){

@@ -17,7 +17,7 @@ public class MovePattern {
         moves.add(move);
     }
     public void addMove(int x, int y){
-        moves.add(new Move(x,y));
+         moves.add(new Move(x,y));
     }
     public void addRayMove(int x, int y){
         moves.add(new Move(x,y,true));

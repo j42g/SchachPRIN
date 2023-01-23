@@ -336,7 +336,7 @@ public class Feld {
             color = 7;
         }
         if (!kinghasMoved(color) && !rookHasMoved(color, 0) && !horizontalStripHasFigur(1, 3, color)) {
-            ArrayList<AbsPosition> a = checker.computeMovesBack(new AbsPosition(4, color),true);
+            ArrayList<AbsPosition> a = checker.computeMoves(new AbsPosition(4, color));
             if (a.contains(new AbsPosition(3, color))) {
                 if (color == 0) {
                     return QWCastling;
@@ -454,7 +454,7 @@ public class Feld {
             for (int y = 0; y < 8; y++) {
                 if (feld[x][y].hasFigur()) {
                     if (feld[x][y].getFigur().getFarbe() == color) {
-                        res.addAll(checker.computeMovesBack(new AbsPosition(x, y), true));
+                        res.addAll(checker.computeMoves(new AbsPosition(x, y)));
                     }
                 }
             }
