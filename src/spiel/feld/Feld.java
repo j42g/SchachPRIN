@@ -172,11 +172,11 @@ public class Feld {
                             if (a.length() == 5) {
                                 return null;
                             }
-                        } else {
+                        } else { //this is only reaced if the piece in question is about to promote
                             if (a.length() == 4) {
                                 return null;
                             }
-                            switch (Character.toLowerCase(a.charAt(4))) {
+                            switch (Character.toLowerCase(a.charAt(4))) { //not using Figur by letter to prevent promotion to king or pawn
                                 case 'q' -> promotionPiece = new Dame(getFigAtPos(origin).getFarbe());
                                 case 'n' -> promotionPiece = new Springer(getFigAtPos(origin).getFarbe());
                                 case 'b' -> promotionPiece = new Laeufer(getFigAtPos(origin).getFarbe());
