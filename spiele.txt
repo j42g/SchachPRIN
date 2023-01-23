@@ -1,1 +1,1 @@
-[]
+[{"white":"2","black":"Janis","uuid":8324794676192883866,"fen":"1rbqkbnr/pppppppp/2n5/8/3PP3/8/PPP2PPP/RNBQKBNR w KQkq - 1 3"}]

@@ -108,7 +108,6 @@ public class ClientHandler extends Thread {
                         }
                     }
                 }
-
             }
         }
     }
@@ -121,19 +120,19 @@ public class ClientHandler extends Thread {
             if (this.benutzer == null) { // passwort falsch
                 out.println("{\"type\":\"authresponse\",\"success\":false,\"error\":\"ERR: PASSWORT FALSCH\"}");
             } else { // alles korrekt
+                out.println(String.format("{\"type\":\"authresponse\",\"success\":true,\"opengame\":%d}", benutzer.getUuidOffenesSpiel()));
+                eingeloggt = true;
+                // hat Nutzer noch ein Spiel?
                 if (benutzer.hatAktivesSpiel()) {
+                    Logger.log("CliendHandler-" + this.UUID, "Client hat offenes Spiel");
                     if (server.checkIfExists(benutzer.getUuidOffenesSpiel())) {
                         server.joinPrivate(this, benutzer.getUuidOffenesSpiel());
-                        starteSpiel();
                     } else {
                         server.createPrivate(this, benutzer.getUuidOffenesSpiel());
                     }
-                    // TODO
-                } else {
-                    out.println("{\"type\":\"authresponse\",\"success\":true,\"opengame\":-1}");
+                    starteSpiel();
                 }
 
-                eingeloggt = true;
             }
         }
     }
@@ -246,8 +245,10 @@ public class ClientHandler extends Thread {
     public void endGame(int endcode) {
         this.imSpiel = false;
         this.amZug = false;
+        Logger.log("ClientHandler-" + this.UUID, "Sende gameover: " + String.format("{\"type\":\"gameover\",\"fen\":\"" + game.getFen() + "\",\"endcode\":%d}", endcode));
         out.println(String.format("{\"type\":\"gameover\",\"fen\":\"" + game.getFen() + "\",\"endcode\":%d}", endcode));
         this.game = null;
+        this.gegnerGefunden = false; // queue resetten
     }
 
     public void requestMove() {
@@ -257,12 +258,14 @@ public class ClientHandler extends Thread {
             } catch (InterruptedException e) {}
         }
         this.amZug = true;
+        Logger.log("ClientHandler-" + this.UUID, "Sende moverequest: " + "{\"type\":\"moverequest\",\"fen\":\"" + game.getFen() + "\"}");
         out.println("{\"type\":\"moverequest\",\"fen\":\"" + game.getFen() + "\"}");
     }
 
     public void move(JSONObject request) {
         this.game.setMove(request.getString("move"));
         this.amZug = false;
+        Logger.log("ClientHandler-" + this.UUID, "Sende movereponse: " + "{\"type\":\"moveresponse\",\"success\":true}");
         out.println("{\"type\":\"moveresponse\",\"success\":true}");
     }
 

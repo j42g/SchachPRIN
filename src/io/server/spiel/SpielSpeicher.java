@@ -49,9 +49,14 @@ public class SpielSpeicher {
         return null;
     }
 
+    public void addSpiel(Spiel spiel) {
+        this.spiele.add(spiel);
+
+    }
+
     public void abspeichern() {
         JSONArray a = new JSONArray();
-        for (Spiel s : spiele) {
+        for (Spiel s : new ArrayList<Spiel>(spiele)) {
             a.put(s.toJSONObject());
         }
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(this.filename))) {

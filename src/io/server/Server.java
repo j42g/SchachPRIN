@@ -4,6 +4,7 @@ import io.Logger;
 import io.server.benutzerverwaltung.Benutzer;
 import io.server.benutzerverwaltung.BenutzerManager;
 import io.server.spiel.SchachSpiel;
+import io.server.spiel.Spiel;
 import io.server.spiel.SpielSpeicher;
 import org.json.JSONObject;
 
@@ -86,11 +87,9 @@ public class Server implements Runnable {
         } // das if brauch man um den server zu schließen und das server.accept() zu beenden
     }
 
-    private synchronized void speichereSpiel(String fen) {
-        // TODO implementieren
-        // Speichern: FEN, Spieler, welcher Spieler welche Farbe hat
-        // format JSON
-        // Dateiname als static field etc.
+    public synchronized void speichereSpiel(SchachSpiel spiel) {
+        this.schachSpiels.remove(spiel);
+        spsp.addSpiel(new Spiel(spiel.getWhiteName(), spiel.getBlackName(), spiel.getUUID(), spiel.getFen()));
     }
 
     private boolean isClientUUIDFree(long id) {
@@ -184,6 +183,7 @@ public class Server implements Runnable {
             Logger.log("server", client.getUUID() + "findet " + waitingClient.getUUID() + "durch Queue");
             schachSpiels.add(new SchachSpiel(generateGameUUID(), waitingClient, client));
             waitingClient.gegnerGefunden();
+            waitingClient = null;
             return true;
         }
     }
@@ -210,7 +210,7 @@ public class Server implements Runnable {
         for (int i = 0; i < waitingPrivate.size(); i++) {
             if (waitingPrivate.get(i).getUUID() == uuid) {
                 waitingPrivate.get(i).joinGame(client);
-                waitingPrivate.remove(i);
+                schachSpiels.add(waitingPrivate.remove(i));
                 Logger.log("server", client.getUUID() + " tritt " + uuid + " bei");
                 return true;
             }
@@ -226,6 +226,7 @@ public class Server implements Runnable {
 
     public synchronized void createPrivate(ClientHandler client, long uuid) {
         // TODO hier muss sichergestellt werden, dass diese uuid nicht schon vorhanden ist, beziehungsweise eine Liste mit nicht verfügbaren uuids haben, sodass diese uuid nicht weiter vergeben wird.
+        // lass ich aus wahrscheinlichkeitsgründen mal aus
         Logger.log("server", "Erstelle Schachlobby aus Spiel");
         if (spsp.checkIfExists(uuid)) {
             this.waitingPrivate.add(new SchachSpiel(uuid, client, spsp.getSpiel(uuid)));
@@ -237,7 +238,7 @@ public class Server implements Runnable {
     }
 
     public synchronized boolean checkIfExists(long uuid) {
-        for (SchachSpiel game : schachSpiels) {
+        for (SchachSpiel game : waitingPrivate) {
             if (game.getUUID() == uuid) {
                 return true;
             }
@@ -245,10 +246,17 @@ public class Server implements Runnable {
         return false;
     }
 
+    public synchronized void endGame(SchachSpiel schachSpiel) {
+        for (SchachSpiel game : schachSpiels) {
+            if (game.getUUID() == schachSpiel.getUUID()) {
+                schachSpiels.remove(schachSpiel);
+                return;
+            }
+        }
+    }
 
     public void stoppe() {
         this.shouldRun = false;
-        bm.abspeichern();
         // ok jetzt wirds lustig. Oben wartet der server noch auf einen client (server.accept()).
         // also geben wir ihm einen Client.
         try {
@@ -261,6 +269,14 @@ public class Server implements Runnable {
             Logger.log("server", "Stoppe Client-Handler-" + thread.getUUID());
             thread.stoppe();
         }
+        for (SchachSpiel thread : schachSpiels) {
+            Logger.log("server", "Stoppe SchachSpiel-" + thread.getUUID());
+            thread.stoppe();
+        }
+
+        bm.abspeichern();
+        spsp.abspeichern();
+
 
     }
 
