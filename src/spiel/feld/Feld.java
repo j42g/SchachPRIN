@@ -138,10 +138,7 @@ public class Feld {
         if (springerlaeufer[0] > 1) { //zu viele Springer
             return false;
         }
-        if (springerlaeufer[1] + springerlaeufer[2] > 2 || (springerlaeufer[1] == 1 && springerlaeufer[2] == 1)) {
-            return false;
-        }
-        return true;
+        return springerlaeufer[1] + springerlaeufer[2] <= 2 && (springerlaeufer[1] != 1 || springerlaeufer[2] != 1);
     }
 
     public int isWon() {
@@ -247,22 +244,21 @@ public class Feld {
     private void updateCastlingRights() {
         if (KWCastling) {
             KWCastling = kingSideCastlingRight(1);
-        } else if(!KWCastling || kingSideCastlingRight(1)){
             getFigAtPos(getKingPos(1)).getMoveSet().getMovePattern().remove(new Move(2,0));
         }
         if (KBCastling) {
             KBCastling = kingSideCastlingRight(-1);
-        } else if(!KBCastling || kingSideCastlingRight(-1)){
+        } else if(kingSideCastlingRight(-1)){
             getFigAtPos(getKingPos(-1)).getMoveSet().getMovePattern().remove(new Move(2,0));
         }
         if (QWCastling) {
             QWCastling = queenSideCastlingRight(1);
-        } else if(!QWCastling || queenSideCastlingRight(1)){
+        } else if(queenSideCastlingRight(1)){
             getFigAtPos(getKingPos(1)).getMoveSet().getMovePattern().remove(new Move(-2,0));
         }
         if (QBCastling) {
             QBCastling = queenSideCastlingRight(-1);
-        } else if(!QBCastling || queenSideCastlingRight(-1)){
+        } else if(queenSideCastlingRight(-1)){
             getFigAtPos(getKingPos(-1)).getMoveSet().getMovePattern().remove(new Move(-2,0));
         }
     }
@@ -277,30 +273,19 @@ public class Feld {
     }
 
     private boolean castlingIsPossible(AbsPosition a, Move b){
-        int rookXPos = 0;
         if (b.getxOffset() > 0) {
-            rookXPos = 7;
             if(a.getY()==7){
-                if(kingSideCastlePossible(-1)){
-                    return true;
-                }
+                return kingSideCastlePossible(-1);
             } else {
-                if(kingSideCastlePossible(1)){
-                    return true;
-                }
+                return kingSideCastlePossible(1);
             }
         } else {
             if(a.getY()==7){
-                if(queenSideCastlePossible(-1)){
-                    return true;
-                }
+                return queenSideCastlePossible(-1);
             } else {
-                if(queenSideCastlePossible(1)){
-                    return true;
-                }
+                return queenSideCastlePossible(1);
             }
         }
-        return false;
     }
 
     private boolean castle(AbsPosition a, Move b) {
@@ -323,10 +308,7 @@ public class Feld {
         } else {
             color = 7;
         }
-        if(!kinghasMoved(color) && !rookHasMoved(color,0)){
-            return true;
-        }
-        return false;
+        return !kinghasMoved(color) && !rookHasMoved(color, 0);
     }
 
     private boolean queenSideCastlePossible(int color) {
@@ -354,10 +336,7 @@ public class Feld {
         } else {
             color = 7;
         }
-        if(!kinghasMoved(color) && !rookHasMoved(color,1)){
-            return true;
-        }
-        return false;
+        return !kinghasMoved(color) && !rookHasMoved(color, 1);
     }
 
     private boolean kingSideCastlePossible(int color) {
@@ -366,7 +345,7 @@ public class Feld {
         } else {
             color = 7;
         }
-        if (!kinghasMoved(color) && !rookHasMoved(color, 1) && !horizontalStripHasFigur(5, 6, color)) {;
+        if (!kinghasMoved(color) && !rookHasMoved(color, 1) && !horizontalStripHasFigur(5, 6, color)) {
             if(!isInCheckAfterMove(new FullMove(new AbsPosition(4,color),new Move(1,0),this)) || !isInCheckAfterMove(new FullMove(new AbsPosition(4,color),new Move(2,0),this))){
                 if (color == 0) {
                     return KWCastling;
@@ -399,10 +378,7 @@ public class Feld {
             if (getFigAtPos(move.getPos()).getFarbe() == playerTurn) {
                 if (!isInCheckAfterMove(move)) {
                     if(getFigAtPos(move.getPos())instanceof Koenig && Math.abs(move.getMov().getxOffset()) == 2){
-                        if(castlingIsPossible(move.getPos(),move.getMov())){
-                            return true;
-                        }
-                        return false;
+                        return castlingIsPossible(move.getPos(), move.getMov());
                     }
                     return true;
                 }
@@ -428,9 +404,7 @@ public class Feld {
             side = 7;
         }
         if (feld[side][color].hasFigur()) {
-            if (!feld[side][color].getFigur().getHasMoved() && feld[side][color].getFigur() instanceof Turm) {
-                return false;
-            }
+            return feld[side][color].getFigur().getHasMoved() || !(feld[side][color].getFigur() instanceof Turm);
         }
         return true;
     }
@@ -516,27 +490,6 @@ public class Feld {
         }
         return new AbsPosition(-1, -1);
     }
-
-    public boolean isQWCastling() {
-        return QWCastling;
-    }
-
-    public boolean isQBCastling() {
-        return QBCastling;
-    }
-
-    public boolean isKWCastling() {
-        return KWCastling;
-    }
-
-    public boolean isKBCastling() {
-        return KBCastling;
-    }
-
-    public int getFiftyMoveRule() {
-        return fiftyMoveRule;
-    }
-
     public String viewFrom(int color) {
         if (color == WEISS) {
             return toString();
